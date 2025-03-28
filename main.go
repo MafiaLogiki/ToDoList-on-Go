@@ -2,14 +2,17 @@ package main
 
 import (
     "fmt"
+    "flag"
+
     "ToDoList/database"
+    "ToDoList/handlers"
     _ "ToDoList/models"
 )
 
 const (
-        to_perform = "To perform"
-        in_process = "In process"
-        done = "Done"
+        ToPerform = "To perform"
+        InProcess = "In process"
+        Done = "Done"
 )
 
 func main () {
@@ -30,13 +33,8 @@ func main () {
         fmt.Println("Insert complete successfully");
     }
 
-    all_tasks, err2 := db.GetAllTasks(database)
-    if err2 != nil {
-        fmt.Println("Error in selection:", err2)
-        return
-    }
 
-    for i := 0; i < len(all_tasks); i++ {
-        fmt.Printf("%v %v %v %v %v\n", all_tasks[i].Id, all_tasks[i].Title, all_tasks[i].Description, all_tasks[i].Status, all_tasks[i].UserId)
-    }
+    addr := flag.String("addr", ":8080", "localhost")
+
+    TaskHandler.CreateAndRunServer(database, *addr)
 }

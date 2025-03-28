@@ -16,12 +16,7 @@ func AddTaskToTable(database *sql.DB, Title, Description, Status string, UserId 
     return database.Exec("INSERT INTO tasks(title, description, status, user_id) VALUES($1, $2, $3, $4)", Title, Description, Status, UserId);
 }
 
-func GetAllTasks(database *sql.DB) ([]task.Task, error) {
-    rows, err := database.Query("SELECT * FROM tasks")
-    if err != nil {
-        return nil, fmt.Errorf("Error in query: %w", err)
-    }
-
+func extractTasksFromRows(rows *sql.Rows) ([]task.Task, error) {
     var tasks []task.Task
     for rows.Next() {
         var new_task task.Task
@@ -31,4 +26,32 @@ func GetAllTasks(database *sql.DB) ([]task.Task, error) {
         tasks = append(tasks, new_task)
     }
     return tasks, nil
+}
+
+func GetAllTasks(database *sql.DB) ([]task.Task, error) {
+    rows, err := database.Query("SELECT * FROM tasks")
+    if err != nil {
+        return nil, fmt.Errorf("Error in query: %w", err)
+    }
+    return extractTasksFromRows(rows)
+}
+
+func GetAllTasksByUserId(database *sql.DB, userID int) ([]task.Task, error) {
+    rows, err := database.Query("SELECT * FROM tasks WHERE user_id = $1", userID)
+    if err != nil {
+        return nil, fmt.Errorf("Error in query: %w", err)
+    }
+
+    return extractTasksFromRows(rows)
+}
+
+func GetTaskById(database *sql.DB, taskID int) (task.Task, error) {
+    rows := database.QueryRow("SELECT * FROM tasks WHERE id = $1", taskID)
+    var task task.Task
+    if err := rows.Scan(&task.Id, &task.Title, &task.Description, &task.Status, &task.UserId); err != nil {
+        return task, err 
+    }
+
+    return task, nil
+    
 }
