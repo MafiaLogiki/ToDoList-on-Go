@@ -1,7 +1,7 @@
 package db
 
 import (
-    "ToDoList/models"
+    "ToDoList/models/task"
 
     "fmt"
     "database/sql"
@@ -46,12 +46,23 @@ func GetAllTasksByUserId(database *sql.DB, userID int) ([]task.Task, error) {
 }
 
 func GetTaskById(database *sql.DB, taskID int) (task.Task, error) {
-    rows := database.QueryRow("SELECT * FROM tasks WHERE id = $1", taskID)
+    row := database.QueryRow("SELECT * FROM tasks WHERE id = $1", taskID)
     var task task.Task
-    if err := rows.Scan(&task.Id, &task.Title, &task.Description, &task.Status, &task.UserId); err != nil {
+    if err := row.Scan(&task.Id, &task.Title, &task.Description, &task.Status, &task.UserId); err != nil {
         return task, err 
     }
 
-    return task, nil
+    return task, nil    
+}
+
+func GetUserToken (database *sql.DB, username, password string) (string) {
+    var token string
     
+    row := database.QueryRow("SELECT token FROM users WHERE username = $1 AND password_hash = $2", username, password)
+    
+    if err := row.Scan(&token); err != nil {
+        return ""
+    }
+
+    return token
 }

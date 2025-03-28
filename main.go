@@ -6,7 +6,7 @@ import (
 
     "ToDoList/database"
     "ToDoList/handlers"
-    _ "ToDoList/models"
+    "ToDoList/middleware"
 )
 
 const (
@@ -15,6 +15,8 @@ const (
         Done = "Done"
 )
 
+// 65e84be33532fb784c48129675f9eff3a682b27168c0ea744b2cf58ee02337c5 - sha256 for qwerty
+
 func main () {
     database, err := db.ConnectToDatabase();
     
@@ -22,19 +24,11 @@ func main () {
         fmt.Println("Error:", err)
         return
     } 
-    defer database.Close();
-    
-
-    _, insert_error := db.AddTaskToTable(database, "Clean home", "Need to wash the dish", "To perform", 1);
-    
-    if insert_error != nil {
-        fmt.Println("Error in insertion:", insert_error);
-    } else {
-        fmt.Println("Insert complete successfully");
-    }
-
-
+    defer database.Close(); 
     addr := flag.String("addr", ":8080", "localhost")
+    
+    token, _ := auth.CreateToken("test")
+    fmt.Printf("Token for user test: %v\n", token)
 
     TaskHandler.CreateAndRunServer(database, *addr)
 }

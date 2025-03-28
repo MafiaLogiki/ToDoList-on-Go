@@ -1,25 +1,27 @@
 package TaskHandler
 
 import (
-    "fmt"
     "net/http"
 	"github.com/go-chi/chi/v5"
     "database/sql"
     "strconv"
+    "encoding/json"
 
     "ToDoList/database"
+    "ToDoList/models/login"
+    "ToDoList/middleware"
 )
 
 func getAllTasksHandler (database *sql.DB) http.HandlerFunc {
     return func (w http.ResponseWriter, r *http.Request) {
         tasks, err := db.GetAllTasks(database)
         if err != nil {
-            http.Error(w, "Error while extracting data", http.StatusNotFound)
-        } else {
-            for i := 0; i < len(tasks); i++ {
-                fmt.Printf("%v %v %v\n", tasks[i].Id, tasks[i].Title, tasks[i].Description)
-           }
+            json.NewEncoder(w).Encode(map[string]int {
+                "Error:": http.StatusNotFound,
+            })
+            return
         }
+        json.NewEncoder(w).Encode(tasks) 
     }
 }
 
@@ -28,7 +30,9 @@ func validateID (next http.Handler) http.Handler {
         id := chi.URLParam(r, "id")
 
         if _, err := strconv.Atoi(id); err != nil {
-            http.Error(w, "Invalid ID", http.StatusBadRequest)
+            json.NewEncoder(w).Encode(map[string]int {
+                "Invalid ID": http.StatusBadRequest,
+            })
             return
         }
         
@@ -42,23 +46,77 @@ func getTaskByIdHandler (database *sql.DB) http.HandlerFunc {
         taskId, _ := strconv.Atoi(chi.URLParam(r, "id")) 
         task, err := db.GetTaskById(database, taskId)
         if err != nil {
-            http.Error(w, "Error in getting task by id", http.StatusNotFound)
+            json.NewEncoder(w).Encode(map[string]int {
+                "Error:" : http.StatusInternalServerError,
+            })
+            return
         }
-        fmt.Printf("%v %v %v\n", task.Id, task.Title, task.Description)
+        json.NewEncoder(w).Encode(task)
     }
+}
+
+func postLoginHandler (database *sql.DB) http.HandlerFunc {
+    return func (w http.ResponseWriter, r *http.Request) {
+        var req login.Login
+        err := json.NewDecoder(r.Body).Decode(&req)    
+   
+        if err != nil {
+            json.NewEncoder(w).Encode(map[string]int{"Error": http.StatusBadRequest})
+            return
+        }
+
+        username := req.Username
+        password := req.Password
+
+        token := db.GetUserToken(database, username, password)
+        
+        if token == "" {
+            http.Error(w, "Bad Request", http.StatusBadRequest)
+            json.NewEncoder(w).Encode(map[string]int {
+                "Error": http.StatusBadRequest,
+            })
+            return
+        }
+         
+        http.SetCookie(w, &http.Cookie{
+            Name: "token",
+            Value: token,
+            Path: "/",
+        })
+
+        json.NewEncoder(w).Encode(map[string]string {"token": token})
+    }
+}
+
+func loginHandler (w http.ResponseWriter, r *http.Request) {
+    http.ServeFile(w, r, "static/login.html")
+}
+
+func taskHandler (w http.ResponseWriter, r *http.Request) {
+    http.ServeFile(w, r, "static/index.html")
 }
 
 func CreateAndRunServer (database *sql.DB, address string) error {
     router := chi.NewRouter()
     
-    router.HandleFunc("/tasks", getAllTasksHandler(database))
-    router.With(validateID).HandleFunc("/tasks/{id}", getTaskByIdHandler(database))
+    router.Route("/api/tasks", func (r chi.Router) {
+        r.With(auth.AuthenticateMiddleware).Get("/", getAllTasksHandler(database))
+        r.With(auth.AuthenticateMiddleware).With(validateID).Get("/{id}", getTaskByIdHandler(database))
+    })
+
+    router.Route("/api/login", func (r chi.Router) {
+        r.Post("/", postLoginHandler(database))
+    })
+
+
+    router.Handle("/login", http.HandlerFunc(loginHandler))
+    router.With(auth.AuthenticateMiddleware).Handle("/tasks", http.HandlerFunc(taskHandler))
+    // router.Handle("/tasks", http.HandlerFunc(taskHandler))
 
     httpServer := &http.Server{
         Addr: address,
         Handler: router,
     }
     
-
     return httpServer.ListenAndServe()
 }

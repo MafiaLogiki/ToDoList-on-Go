@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Авторизация</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .auth-form {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .auth-form button {
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .error-message {
+            color: red;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-form">
+        <h2>Вход</h2>
+        <div class="error-message" id="error"></div>
+        <input type="text" id="username" placeholder="Логин">
+        <input type="password" id="password" placeholder="Пароль">
+        <button onclick="login()">Войти</button>
+    </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById('username').value
+            const password = document.getElementById('password').value
+            const error = document.getElementById('error')
+
+            try {
+                const hashedPassword = await hashPassword(password)
+
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username, 
+                        password
+                    })
+                })
+                
+                
+
+                if (response.ok) {
+                    const data = await response.json()
+                    localStorage.setItem('token', data.token) // Сохраняем токен
+                    window.location.href = '/tasks' // Перенаправляем
+                } else {
+                    error.textContent = 'Неверный логин или пароль'
+                    error.style.display = 'block'
+                }
+            } catch (err) {
+                error.textContent = 'Ошибка соединения'
+                error.style.display = 'block'
+            }
+        }
+        
+        async function hashPassword(password) {
+            const encoder = new TextEncoder()
+            const data = encoder.encode(password)
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+            const hashArray = Array.from(new Uint8Array(hashBuffer))
+            return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('')
+        }
+    </script>
+</body>
+</html>
