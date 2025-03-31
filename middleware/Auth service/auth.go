@@ -17,10 +17,10 @@ var secretKey = []byte("todolist")
 /*
 Users database contains only one table with name 'user_info'
 It contains three columns:
-user_id SERIAL - PRIMARY KEY
-username VCHAR(30) - UNIQUE, NOT NULL
-password_hash VCHAR(256) - NOT NULL
-token VCHAR(1024) - NOT NULL
+id SERIAL - PRIMARY KEY
+username VARCHAR(30) - UNIQUE, NOT NULL
+password_hash VARCHAR(256) - NOT NULL
+token VARCHAR(1024) - NOT NULL
 */
 
 func createToken (username string) (string, error) {
@@ -115,9 +115,9 @@ func postLoginHandler (w http.ResponseWriter, r *http.Request) () {
         token := db.GetUserToken(username, password)
         
         if token == "" {
-            http.Error(w, "Bad Request", http.StatusBadRequest)
+            http.Error(w, "Bad request", http.StatusBadRequest)
             json.NewEncoder(w).Encode(map[string]int {
-                "Error in GetUserToken": http.StatusBadRequest,
+                "error": http.StatusBadRequest,
             })
             return
         }

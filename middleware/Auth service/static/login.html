@@ -42,11 +42,11 @@
                     localStorage.setItem('token', data.token); // Сохраняем токен в localStorage
                     window.location.href = '/tasks'; // Перенаправляем на страницу задач
                 } else {
-                    const errorData = await response.json();
-                    errorElement.textContent = errorData.error || 'Неверный логин или пароль';
+                    errorElement.textContent = 'Неверный логин или пароль';
                     errorElement.style.display = 'block';
                 }
             } catch (err) {
+                console.log(err.message);
                 errorElement.textContent = 'Ошибка соединения';
                 errorElement.style.display = 'block';
             }
