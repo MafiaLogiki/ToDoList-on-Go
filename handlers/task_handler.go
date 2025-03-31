@@ -9,7 +9,6 @@ import (
 
     "ToDoList/database"
     "ToDoList/models/login"
-    "ToDoList/middleware"
 )
 
 func getAllTasksHandler (database *sql.DB) http.HandlerFunc {
@@ -73,11 +72,11 @@ func postLoginHandler (database *sql.DB) http.HandlerFunc {
         if token == "" {
             http.Error(w, "Bad Request", http.StatusBadRequest)
             json.NewEncoder(w).Encode(map[string]int {
-                "Error": http.StatusBadRequest,
+                "Error in GetUserToken": http.StatusBadRequest,
             })
             return
         }
-         
+        
         http.SetCookie(w, &http.Cookie{
             Name: "token",
             Value: token,
@@ -93,7 +92,7 @@ func loginHandler (w http.ResponseWriter, r *http.Request) {
 }
 
 func taskHandler (w http.ResponseWriter, r *http.Request) {
-    http.ServeFile(w, r, "static/index.html")
+    http.ServeFile(w, r, "static/tasks.html")
 }
 
 func CreateAndRunServer (database *sql.DB, address string) error {
@@ -108,10 +107,14 @@ func CreateAndRunServer (database *sql.DB, address string) error {
         r.Post("/", postLoginHandler(database))
     })
 
-
-    router.Handle("/login", http.HandlerFunc(loginHandler))
-    router.With(auth.AuthenticateMiddleware).Handle("/tasks", http.HandlerFunc(taskHandler))
-    // router.Handle("/tasks", http.HandlerFunc(taskHandler))
+    router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+    
+    router.With(auth.IsAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandler))
+    router.With(auth.AuthenticateMiddleware).HandleFunc("/tasks", http.HandlerFunc(taskHandler))
+    
+    router.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+    })
 
     httpServer := &http.Server{
         Addr: address,

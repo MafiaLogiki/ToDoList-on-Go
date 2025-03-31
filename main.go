@@ -4,9 +4,10 @@ import (
     "fmt"
     "flag"
 
+    _ "github.com/swaggo/files"         // Swagger UI files
+    "github.com/swaggo/http-swagger"    // Swagger middleware
     "ToDoList/database"
     "ToDoList/handlers"
-    "ToDoList/middleware"
 )
 
 const (
@@ -27,8 +28,7 @@ func main () {
     defer database.Close(); 
     addr := flag.String("addr", ":8080", "localhost")
     
-    token, _ := auth.CreateToken("test")
-    fmt.Printf("Token for user test: %v\n", token)
+    fmt.Printf("%v\n", db.GetIdOfNewUser(database))
 
     TaskHandler.CreateAndRunServer(database, *addr)
 }
