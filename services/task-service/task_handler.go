@@ -1,28 +1,17 @@
-package TaskHandler
+package main
 
 import (
     "net/http"
-	"github.com/go-chi/chi/v5"
     "database/sql"
     "strconv"
     "encoding/json"
 
-    "ToDoList/database"
-    "ToDoList/models/login"
+    "task-service/database"
+
+	"github.com/go-chi/chi/v5"
 )
 
-func getAllTasksHandler (database *sql.DB) http.HandlerFunc {
-    return func (w http.ResponseWriter, r *http.Request) {
-        tasks, err := db.GetAllTasks(database)
-        if err != nil {
-            json.NewEncoder(w).Encode(map[string]int {
-                "Error:": http.StatusNotFound,
-            })
-            return
-        }
-        json.NewEncoder(w).Encode(tasks) 
-    }
-}
+
 
 func validateID (next http.Handler) http.Handler {
     return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
@@ -54,48 +43,8 @@ func getTaskByIdHandler (database *sql.DB) http.HandlerFunc {
     }
 }
 
-func postLoginHandler (database *sql.DB) http.HandlerFunc {
-    return func (w http.ResponseWriter, r *http.Request) {
-        var req login.Login
-        err := json.NewDecoder(r.Body).Decode(&req)    
-   
-        if err != nil {
-            json.NewEncoder(w).Encode(map[string]int{"Error": http.StatusBadRequest})
-            return
-        }
-
-        username := req.Username
-        password := req.Password
-
-        token := db.GetUserToken(database, username, password)
-        
-        if token == "" {
-            http.Error(w, "Bad Request", http.StatusBadRequest)
-            json.NewEncoder(w).Encode(map[string]int {
-                "Error in GetUserToken": http.StatusBadRequest,
-            })
-            return
-        }
-        
-        http.SetCookie(w, &http.Cookie{
-            Name: "token",
-            Value: token,
-            Path: "/",
-        })
-
-        json.NewEncoder(w).Encode(map[string]string {"token": token})
-    }
-}
-
-func loginHandler (w http.ResponseWriter, r *http.Request) {
-    http.ServeFile(w, r, "static/login.html")
-}
-
-func taskHandler (w http.ResponseWriter, r *http.Request) {
-    http.ServeFile(w, r, "static/tasks.html")
-}
-
-func CreateAndRunServer (database *sql.DB, address string) error {
+func CreateAndRunServer (address string) error {
+    
     router := chi.NewRouter()
     
     router.Route("/api/tasks", func (r chi.Router) {
@@ -122,4 +71,8 @@ func CreateAndRunServer (database *sql.DB, address string) error {
     }
     
     return httpServer.ListenAndServe()
+}
+
+func main() {
+
 }
