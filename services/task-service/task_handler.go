@@ -9,6 +9,7 @@ import (
     "task-service/database"
 
 	"github.com/go-chi/chi/v5"
+    "github.com/MafiaLogiki/common/auth"
 )
 
 
