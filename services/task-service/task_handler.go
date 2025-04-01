@@ -2,17 +2,15 @@ package main
 
 import (
     "net/http"
-    "database/sql"
     "strconv"
     "encoding/json"
 
-    "task-service/database"
+    "task-service/internal/repository"
 
 	"github.com/go-chi/chi/v5"
     "github.com/MafiaLogiki/common/auth"
+    "github.com/MafiaLogiki/common/domain"
 )
-
-
 
 func validateID (next http.Handler) http.Handler {
     return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
@@ -30,18 +28,35 @@ func validateID (next http.Handler) http.Handler {
 }
 
 
-func getTaskByIdHandler (database *sql.DB) http.HandlerFunc {
-    return func (w http.ResponseWriter, r *http.Request) {
-        taskId, _ := strconv.Atoi(chi.URLParam(r, "id")) 
-        task, err := db.GetTaskById(database, taskId)
-        if err != nil {
-            json.NewEncoder(w).Encode(map[string]int {
-                "Error:" : http.StatusInternalServerError,
-            })
-            return
-        }
-        json.NewEncoder(w).Encode(task)
+func getTaskByIdHandler (w http.ResponseWriter, r *http.Request) () {
+    taskId, _ := strconv.Atoi(chi.URLParam(r, "id")) 
+    task, err := db.GetTaskById(taskId)
+    if err != nil {
+        json.NewEncoder(w).Encode(map[string]int {
+            "Error:" : http.StatusInternalServerError,
+        })
+        return
     }
+    json.NewEncoder(w).Encode(task)
+} 
+
+func getAllTasksForUserHandler(w http.ResponseWriter, r *http.Request) () {
+    var tasks []domain.Task
+
+    tokenString, _ := r.Cookie("token") // No error handling because authmiddleware
+
+    id, err := auth.GetIdFromToken(tokenString.Value)
+    if err != nil {
+        http.Error(w, "Error", http.StatusBadRequest)
+        return
+    }
+
+    tasks, err = db.GetAllTasksByUserId(id)
+    if err != nil {
+        http.Error(w, "Error", http.StatusBadRequest)
+    }
+    
+    json.NewEncoder(w).Encode(tasks)
 }
 
 func CreateAndRunServer (address string) error {
@@ -49,18 +64,13 @@ func CreateAndRunServer (address string) error {
     router := chi.NewRouter()
     
     router.Route("/api/tasks", func (r chi.Router) {
-        r.With(auth.AuthenticateMiddleware).Get("/", getAllTasksHandler(database))
-        r.With(auth.AuthenticateMiddleware).With(validateID).Get("/{id}", getTaskByIdHandler(database))
-    })
-
-    router.Route("/api/login", func (r chi.Router) {
-        r.Post("/", postLoginHandler(database))
+        r.With(auth.AuthenticateMiddleware).Get("/", getAllTasksForUserHandler)
+        r.With(auth.AuthenticateMiddleware).With(validateID).Get("/{id}", getTaskByIdHandler)
     })
 
     router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
     
-    router.With(auth.IsAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandler))
-    router.With(auth.AuthenticateMiddleware).HandleFunc("/tasks", http.HandlerFunc(taskHandler))
+    // router.With(auth.AuthenticateMiddleware).HandleFunc("/tasks", http.HandlerFunc(taskHandler))
     
     router.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -75,5 +85,5 @@ func CreateAndRunServer (address string) error {
 }
 
 func main() {
-
+    CreateAndRunServer(":8082")
 }

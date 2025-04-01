@@ -3,6 +3,7 @@ package auth
 import (
     "fmt"
     "net/http"
+    "strconv"
 
     "github.com/golang-jwt/jwt/v5"
 )
@@ -22,6 +23,13 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
     }
 
     return token, nil
+}
+
+func GetIdFromToken(token string) (int, error) {
+    parsedToken, _ := jwt.Parse(token, func (token *jwt.Token) (interface {}, error) {return secretKey, nil})
+    sub, _ := parsedToken.Claims.GetSubject()
+    id, err := strconv.Atoi(sub)
+    return id, err
 }
 
 //TODO: Define am i need this function here
@@ -65,4 +73,19 @@ func IsAlreadyAuth (next http.Handler) http.Handler {
 
        http.Redirect(w, r, "/tasks", http.StatusSeeOther)
     })
+}
+
+
+func CreateToken (id int) (string, error) {
+    claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+        "sub": id,
+        "iss": "todo-app",
+    })
+
+    tokenString, err := claims.SignedString(secretKey)
+    if err != nil {
+        return "", err
+    }
+
+    return tokenString, nil
 }

@@ -4,7 +4,7 @@ import (
     "fmt"
     "database/sql"
     
-    "task-service/models"
+    "github.com/MafiaLogiki/common/domain"
 
     _ "github.com/lib/pq"
 )
@@ -17,7 +17,7 @@ func ConnectToDatabase() (error) {
     return err
 }
 
-func AddTaskToTable(Task task.Task) (sql.Result, error) {
+func AddTaskToTable(Task domain.Task) (sql.Result, error) {
     execQuery := fmt.Sprintf(
         `INSERT INTO tasks(title, description, status, user_id) VALUES(%v, %v, %v, %v)`,
                                                                        Task.Title,
@@ -27,10 +27,10 @@ func AddTaskToTable(Task task.Task) (sql.Result, error) {
     return database.Exec(execQuery);
 }
 
-func extractTasksFromRows(rows *sql.Rows) ([]task.Task, error) {
-    var tasks []task.Task
+func extractTasksFromRows(rows *sql.Rows) ([]domain.Task, error) {
+    var tasks []domain.Task
     for rows.Next() {
-        var new_task task.Task
+        var new_task domain.Task
         if err := rows.Scan(&new_task.Id, &new_task.Title, &new_task.Description, &new_task.Status, &new_task.UserId); err != nil {
             return nil, err 
         }
@@ -39,7 +39,7 @@ func extractTasksFromRows(rows *sql.Rows) ([]task.Task, error) {
     return tasks, nil
 }
 
-func GetAllTasksByUserId(userID int) ([]task.Task, error) {
+func GetAllTasksByUserId(userID int) ([]domain.Task, error) {
     rows, err := database.Query("SELECT * FROM tasks WHERE user_id = $1", userID)
     if err != nil {
         return nil, fmt.Errorf("Error in query: %w", err)
@@ -48,9 +48,9 @@ func GetAllTasksByUserId(userID int) ([]task.Task, error) {
     return extractTasksFromRows(rows)
 }
 
-func GetTaskById(taskID int) (task.Task, error) {
+func GetTaskById(taskID int) (domain.Task, error) {
     row := database.QueryRow("SELECT * FROM tasks WHERE id = $1", taskID)
-    var task task.Task
+    var task domain.Task
     if err := row.Scan(&task.Id, &task.Title, &task.Description, &task.Status, &task.UserId); err != nil {
         return task, err 
     }

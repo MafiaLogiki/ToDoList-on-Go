@@ -74,7 +74,7 @@ func main() {
 
     router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-    router.With(isAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandlerFunction))
+    router.With(auth.isAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandlerFunction))
 
     router.Route("/api/login", func (r chi.Router) {
         r.Post("/", postLoginHandler)
