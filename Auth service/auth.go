@@ -20,23 +20,7 @@ It contains three columns:
 id SERIAL - PRIMARY KEY
 username VARCHAR(30) - UNIQUE, NOT NULL
 password_hash VARCHAR(256) - NOT NULL
-token VARCHAR(1024) - NOT NULL
 */
-
-func createToken (username string) (string, error) {
-    claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "sub": username,
-        "iss": "todo-app",
-        "id": db.GetIdOfNewUser(),
-    })
-
-    tokenString, err := claims.SignedString(secretKey)
-    if err != nil {
-        return "", err
-    }
-
-    return tokenString, nil
-}
 
 func verifyToken(tokenString string) (*jwt.Token, error) {
     token, err := jwt.Parse(tokenString, func (token *jwt.Token) (interface {}, error) {return secretKey, nil})
@@ -51,7 +35,6 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 
     return token, nil
 }
-
 
 func authenticateMiddleware(next http.Handler) http.Handler {
    return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {

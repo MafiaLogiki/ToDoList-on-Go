@@ -1,9 +1,11 @@
 package db
 
 import (
-
     "fmt"
     "database/sql"
+    
+    "register-service/models"
+
     _ "github.com/lib/pq"
 )
 
@@ -14,19 +16,44 @@ func ConnectToDatabase(host, port, user, password, dbname string) (error)  {
     
     var err error
     database, err = sql.Open("postgres", databaseInfo)
+
     return err
 }
 
 func CloseConnection() {
     database.Close()
 }
-func CheckIfUsernameValid(username string) (bool) {
-    var result_of_searching bool
+
+func checkIfUsernameValid(username string) (bool) {
+    var result_of_searching string
     err := database.QueryRow("SELECT username FROM users WHERE username = $1", username).Scan(&result_of_searching)
 
     return err != nil
 }
 
+func CreateNewUser(newUser user.User) (int, error) {
+    
+    if !checkIfUsernameValid(newUser.Username) {
+        fmt.Printf("%v", newUser.Username)
+        return 0, fmt.Errorf("Error. Username is busy")
+    }
+
+    query := fmt.Sprintf("INSERT INTO users(username, password_hash) VALUES('%v', '%v') RETURNING id", 
+                        newUser.Username,
+                        newUser.Password)
+    
+    var id int
+    err := database.QueryRow(query).Scan(&id)
+    
+    if err != nil {
+        fmt.Printf("testttt\n")
+        return 0, err
+    }
+
+    return id, nil
+}
+
+/*
 func GetIdOfNewUser () (int) {
     var newId int
     err := database.QueryRow(`   
@@ -47,5 +74,10 @@ func GetIdOfNewUser () (int) {
         }
         return newId + 1
     }
+
+    if err != nil {
+        return 0
+    }
     return newId
 }
+*/
