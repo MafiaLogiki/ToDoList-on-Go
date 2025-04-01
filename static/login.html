@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Вход</h2>
+        <div class="error-message" id="error"></div>
+        <form id="loginForm">
+            <input type="text" id="username" name="username" placeholder="Логин" required>
+            <input type="password" id="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Предотвращаем отправку формы
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('error');
+
+            try {
+                // Хешируем пароль
+                const hashedPassword = await hashPassword(password);
+
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password: hashedPassword })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token); // Сохраняем токен в localStorage
+                    window.location.href = '/tasks'; // Перенаправляем на страницу задач
+                } else {
+                    const errorData = await response.json();
+                    errorElement.textContent = errorData.error || 'Неверный логин или пароль';
+                    errorElement.style.display = 'block';
+                }
+            } catch (err) {
+                errorElement.textContent = 'Ошибка соединения';
+                errorElement.style.display = 'block';
+            }
+        });
+
+        // Функция для хеширования пароля с использованием SHA-256
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+    </script>
+</body>
+</html>
