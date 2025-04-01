@@ -7,9 +7,9 @@ import (
 
     "github.com/go-chi/chi/v5"
 
-    "register-service/database"
-    "register-service/models"
-    "register-service/token"
+    "register-service/internals/repository"
+    "github.com/MafiaLogiki/common/domain"
+    "github.com/MafiaLogiki/common/auth"
 )
 
 var secretKey = []byte("todolist")
@@ -19,7 +19,7 @@ func registerHandlerFunction (w http.ResponseWriter, r *http.Request) {
 }
 
 func createAndAddTokenToCookie(w http.ResponseWriter, id int) {
-    token, err := token.CreateToken(id) 
+    token, err := auth.CreateToken(id) 
 
     if err != nil {
         http.Error(w, "Error in creating token", http.StatusBadRequest)
@@ -33,7 +33,7 @@ func createAndAddTokenToCookie(w http.ResponseWriter, id int) {
 }
 
 func postRegisterHandler(w http.ResponseWriter, r *http.Request) {
-    var newUser user.User
+    var newUser domain.User
     err := json.NewDecoder(r.Body).Decode(&newUser)
     
     if err != nil {

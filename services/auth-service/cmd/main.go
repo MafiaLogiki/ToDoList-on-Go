@@ -5,10 +5,11 @@ import (
 	"net/http"
     "encoding/json"
 
-    "login-service/database"
-    "login-service/models/user"
+    "auth-service/internals/repository"
 
     "github.com/go-chi/chi/v5"
+    "github.com/MafiaLogiki/common/domain"
+    "github.com/MafiaLogiki/common/auth"
 )
 
 var secretKey = []byte("todolist")
@@ -23,7 +24,7 @@ password_hash VARCHAR(256) - NOT NULL
 
 
 func postLoginHandler (w http.ResponseWriter, r *http.Request) () {
-        var req user.User
+        var req domain.User
         err := json.NewDecoder(r.Body).Decode(&req)    
    
         if err != nil {
@@ -74,7 +75,7 @@ func main() {
 
     router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-    router.With(auth.isAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandlerFunction))
+    router.With(auth.IsAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandlerFunction))
 
     router.Route("/api/login", func (r chi.Router) {
         r.Post("/", postLoginHandler)
