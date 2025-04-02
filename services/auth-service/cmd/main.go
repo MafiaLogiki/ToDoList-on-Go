@@ -1,14 +1,9 @@
 package main
 
 import (
-    "fmt"
-    _ "encoding/json"
-
     "auth-service/internals/repository"
     "auth-service/internals/handlers"
 
-    _ "github.com/MafiaLogiki/common/domain"
-    _ "github.com/MafiaLogiki/common/auth"
     "github.com/MafiaLogiki/common/logger"
 )
 
@@ -27,10 +22,15 @@ func main() {
     err := db.ConnectToDatabase()
 
     if err != nil {
-        fmt.Printf("%v", err)
+        logger.Fatal("Error in database connection")
         return
     }
     defer db.CloseConnection()
+    logger.Info("Database connetcion is ok")
+
+    err2 := handlers.StartServer(":8080", logger)
     
-    handlers.StartServer(":8080", logger)
+    if err2 != nil {
+        logger.Fatal("Error in server starting")
+    }    
 }

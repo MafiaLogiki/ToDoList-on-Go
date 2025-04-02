@@ -8,10 +8,13 @@ replace github.com/MafiaLogiki/common/domain => ../../common/domain
 
 replace github.com/MafiaLogiki/common/logger => ../../common/logger
 
+replace github.com/MafiaLogiki/common/middleware => ../../common/middleware
+
 require (
 	github.com/MafiaLogiki/common/auth v0.0.0
 	github.com/MafiaLogiki/common/domain v0.0.0-00010101000000-000000000000
-	github.com/MafiaLogiki/common/logger v0.0.0-00010101000000-000000000000
+	github.com/MafiaLogiki/common/logger v0.0.0
+	github.com/MafiaLogiki/common/middleware v0.0.0-00010101000000-000000000000
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/lib/pq v1.10.9
 )

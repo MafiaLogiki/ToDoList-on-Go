@@ -11,7 +11,7 @@ import (
     
     "github.com/MafiaLogiki/common/domain"
     "github.com/MafiaLogiki/common/logger"
-    "github.com/MafiaLogiki/common/auth"
+    "github.com/MafiaLogiki/common/middleware"
 )
 
 type handler struct {
@@ -26,7 +26,7 @@ func NewHandler(logger logger.Logger) *handler {
 
 func (h *handler) Login(r *chi.Mux) {
     r.Post("/api/login", h.PostLoginHandler)
-    r.With(auth.AuthenticateMiddleware).HandleFunc("/*", func (w http.ResponseWriter, r *http.Request){})
+    r.With(middleware.AuthenticateMiddleware(h.l)).HandleFunc("/*", func (w http.ResponseWriter, r *http.Request){})
 }
 
 func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
@@ -34,6 +34,7 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         err := json.NewDecoder(r.Body).Decode(&req) 
    
         if err != nil {
+            h.l.Error("Can't decode json file")
             json.NewEncoder(w).Encode(map[string]string{
                 "Description": "Error in input json decoding", 
                 "Info": fmt.Sprintf("%v", err), 
@@ -48,6 +49,7 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         token := db.GetUserToken(username, password)
         
         if token == "" {
+            h.l.Error("Wrong username or password") 
             http.Error(w, "Bad request", http.StatusBadRequest)
             json.NewEncoder(w).Encode(map[string]int {
                 "error": http.StatusBadRequest,
@@ -69,7 +71,7 @@ func StartServer(addr string, l logger.Logger) error {
     h := NewHandler(l)
 
     r.Use(logger.LoggerMiddleware)
-    r.Use(auth.AuthenticateMiddleware)
+    r.Use(middleware.AuthenticateMiddleware(l))
 
     h.Login(r)
 
@@ -78,5 +80,6 @@ func StartServer(addr string, l logger.Logger) error {
         Handler: r,
     }
 
+    defer l.Info("Server is running on :8080")
     return server.ListenAndServe()
 }

@@ -45,23 +45,29 @@ func (w *LoggingResponseWriter) GetBody() string {
 
 func (f *customTextFormatter) Format(entry *logrus.Entry) ([]byte, error){
     var b bytes.Buffer
+    if len(entry.Data) != 0 {
+        b.WriteString(fmt.Sprintf("[%s] [%s %s] %s", 
+            strings.ToUpper(entry.Level.String()),
+            entry.Data["method"],
+            entry.Data["path"],
+            entry.Message,
+        ))
 
-    b.WriteString(fmt.Sprintf("[%s] [%s] [%s:%d] %s", 
-        entry.Time.Format("2006-01-02 15:04:05"),
-        entry.Level.String(),
-        entry.Caller.Func.Name(),
-        entry.Caller.Line,
-        entry.Message,
-    ))
-
-    if len(entry.Data) > 0 {
         for key, value := range entry.Data {
             b.WriteString(fmt.Sprintf(" %s=%v", key, value))
         }
     } else {
-        b.WriteString(" <no data>")
+        functionWithoutPrefix, _ := strings.CutPrefix(entry.Caller.Function, "github.com/MafiaLogiki")
+        b.WriteString(fmt.Sprintf("[%s] [%s] [%s:%d] %s", 
+            strings.ToUpper(entry.Level.String()),
+            entry.Caller.File,
+            functionWithoutPrefix,
+            entry.Caller.Line,
+            entry.Message,
+        ))
     }
-    b.WriteString("\n")   
+
+    b.WriteString("\n")
     return b.Bytes(), nil
 }
 

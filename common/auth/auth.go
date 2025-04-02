@@ -2,17 +2,18 @@ package auth
 
 import (
     "fmt"
-    "net/http"
     "strconv"
 
     "github.com/golang-jwt/jwt/v5"
+    "github.com/MafiaLogiki/common/logger"
 )
 
 var secretKey = []byte("todolist")
 
-
-func verifyToken(tokenString string) (*jwt.Token, error) {
+func VerifyToken(l logger.Logger, tokenString string) (*jwt.Token, error) {
+    l.Info("Starting verifying token")
     token, err := jwt.Parse(tokenString, func (token *jwt.Token) (interface {}, error) {return secretKey, nil})
+
 
     if err != nil {
         return nil, err
@@ -22,6 +23,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
         return nil, fmt.Errorf("invalid token")
     }
 
+    l.Info("Token verifying done success")
     return token, nil
 }
 
@@ -32,51 +34,9 @@ func GetIdFromToken(token string) (int, error) {
     return id, err
 }
 
-//TODO: Define am i need this function here
-func AuthenticateMiddleware(next http.Handler) http.Handler {
-   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-       cookie, err := r.Cookie("token")
 
-       if err != nil {
-           fmt.Printf("Error: %v\n", err)
-           http.Redirect(w, r, "/login", http.StatusSeeOther)
-           return
-       }
-        
-       _, err2 := verifyToken(cookie.Value)
-
-       if err2 != nil {
-            fmt.Printf("Error: %v\n", err2)
-            http.Redirect(w, r, "/login", http.StatusSeeOther)
-            return
-       }
-
-       next.ServeHTTP(w, r) 
-   })
-}
-
-func IsAlreadyAuth (next http.Handler) http.Handler {
-    return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-       cookie, err := r.Cookie("token")
-
-       if err != nil {
-           next.ServeHTTP(w, r)
-           return
-       }
-        
-       _, err2 := verifyToken(cookie.Value)
-
-       if err2 != nil { 
-           next.ServeHTTP(w, r)
-           return
-       }
-
-       http.Redirect(w, r, "/tasks", http.StatusSeeOther)
-    })
-}
-
-
-func CreateToken (id int) (string, error) {
+func CreateToken (l logger.Logger, id int) (string, error) {
+    l.Info("Creating token with id ", id)
     claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
         "sub": id,
         "iss": "todo-app",
@@ -84,8 +44,10 @@ func CreateToken (id int) (string, error) {
 
     tokenString, err := claims.SignedString(secretKey)
     if err != nil {
+        l.Error("Error in token creating: ", err)
         return "", err
     }
 
+    l.Info("Creating token done successfully")
     return tokenString, nil
 }

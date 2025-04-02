@@ -17,6 +17,10 @@ func ConnectToDatabase() (error) {
     return err
 }
 
+func CloseConnection() {
+    database.Close()
+}
+
 func AddTaskToTable(Task domain.Task) (sql.Result, error) {
     execQuery := fmt.Sprintf(
         `INSERT INTO tasks(title, description, status, user_id) VALUES(%v, %v, %v, %v)`,
