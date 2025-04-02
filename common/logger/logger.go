@@ -13,6 +13,13 @@ import (
     "github.com/go-chi/chi/v5/middleware"
 )
 
+type Logger interface {
+    Info(args ...interface{})
+    Warn(args ...interface{})
+    Debug(args ...interface{})
+    Error(args ...interface{})
+}
+
 type LoggingResponseWriter struct {
     middleware.WrapResponseWriter
     body bytes.Buffer
@@ -60,14 +67,15 @@ func (f *customTextFormatter) Format(entry *logrus.Entry) ([]byte, error){
 
 var logger *logrus.Logger
 
-func init() {
-    logger = logrus.New() 
+func NewLogger() *logrus.Logger { 
+    logger = logrus.New()
+    
     logger.SetOutput(os.Stdout)
-
     logger.SetReportCaller(true)
     logger.SetFormatter(&customTextFormatter{})
-    logger.Info("Logger has been init")
-
+ 
+    defer logger.Info("Logger has been init")
+    return logger
 }
 
 func LoggerMiddleware(next http.Handler) http.Handler {

@@ -5,20 +5,33 @@ import (
     "net/http"
     "encoding/json"
 
-    "github.com/go-chi/chi/v5"
-    "github.com/MafiaLogiki/common/domain"
     "auth-service/internals/repository"
+    
+    "github.com/go-chi/chi/v5"
+    
+    "github.com/MafiaLogiki/common/domain"
+    "github.com/MafiaLogiki/common/logger"
+    "github.com/MafiaLogiki/common/auth"
 )
 
-type handler struct {}
-
-func (h *handler) Login(r *chi.Mux) {
-    r.Post("/login", h.postLoginHandler)
+type handler struct {
+    l logger.Logger
 }
 
-func (h *handler) postLoginHandler (w http.ResponseWriter, r *http.Request) () {
+func NewHandler(logger logger.Logger) *handler {
+    return &handler {
+        l: logger,
+    }
+}
+
+func (h *handler) Login(r *chi.Mux) {
+    r.Post("/api/login", h.PostLoginHandler)
+    r.With(auth.AuthenticateMiddleware).HandleFunc("/*", func (w http.ResponseWriter, r *http.Request){})
+}
+
+func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         var req domain.User
-        err := json.NewDecoder(r.Body).Decode(&req)    
+        err := json.NewDecoder(r.Body).Decode(&req) 
    
         if err != nil {
             json.NewEncoder(w).Encode(map[string]string{
@@ -51,6 +64,19 @@ func (h *handler) postLoginHandler (w http.ResponseWriter, r *http.Request) () {
         json.NewEncoder(w).Encode(map[string]string {"token": token})
 }
 
-func StartServer(addr string) {
+func StartServer(addr string, l logger.Logger) error {
+    r := chi.NewRouter()
+    h := NewHandler(l)
 
+    r.Use(logger.LoggerMiddleware)
+    r.Use(auth.AuthenticateMiddleware)
+
+    h.Login(r)
+
+    server := &http.Server {
+        Addr: addr,
+        Handler: r,
+    }
+
+    return server.ListenAndServe()
 }

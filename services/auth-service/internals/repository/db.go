@@ -1,16 +1,34 @@
 package db
 
 import (
-
     "fmt"
     "database/sql"
     _ "github.com/lib/pq"
+    "github.com/MafiaLogiki/common/domain"
 )
 
 var database *sql.DB
+var dbConfig *domain.DBConfig
 
-func ConnectToDatabase(host, port, user, password, dbname string) (error)  {
-    databaseInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v", host, port, user, password, dbname)
+
+func init() {
+    dbConfig =  &domain.DBConfig {
+        Host: "localhost",
+        Port: "5432",
+        HostName: "postgres",
+        Password: "1234",
+        DBName: "users",
+    }
+}
+
+func ConnectToDatabase() (error)  {
+    databaseInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v",
+        dbConfig.Host,
+        dbConfig.Port,
+        dbConfig.HostName,
+        dbConfig.Password,
+        dbConfig.DBName,
+    )
     
     var err error
     database, err = sql.Open("postgres", databaseInfo)
