@@ -10,6 +10,7 @@ import (
     "github.com/go-chi/chi/v5"
     "github.com/MafiaLogiki/common/domain"
     "github.com/MafiaLogiki/common/auth"
+    "github.com/MafiaLogiki/common/logger"
 )
 
 var secretKey = []byte("todolist")
@@ -72,7 +73,7 @@ func main() {
     defer db.CloseConnection()
     
     router := chi.NewRouter()
-
+    router.Use(logger.LoggerMiddleware)
     router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
     router.With(auth.IsAlreadyAuth).HandleFunc("/login", http.HandlerFunc(loginHandlerFunction))
