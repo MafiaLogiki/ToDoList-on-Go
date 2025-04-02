@@ -9,8 +9,10 @@ import (
     "task-service/internal/validators"
     
     "github.com/MafiaLogiki/common/domain"
+    "github.com/MafiaLogiki/common/middleware"
     "github.com/MafiaLogiki/common/auth"
     "github.com/MafiaLogiki/common/logger"
+
     "github.com/go-chi/chi/v5"
 )
 
@@ -46,19 +48,18 @@ func GetTaskByIdHandler (w http.ResponseWriter, r *http.Request) () {
     json.NewEncoder(w).Encode(task)
 }
 
-func CreateAndRunServer (address string) error {
+func CreateAndRunServer (address string, l logger.Logger) error {
     
     router := chi.NewRouter()
+
     router.Use(logger.LoggerMiddleware)
-    router.Use(auth.AuthenticateMiddleware)
+    router.Use(middleware.AuthenticateMiddleware(l))
 
     router.Route("/api/tasks", func (r chi.Router) {
         r.Get("/", GetAllTasksForUserHandler)
         r.With(validators.ValidateID).Get("/{id}", GetTaskByIdHandler)
     })
-    
-    // router.With(auth.AuthenticateMiddleware).HandleFunc("/tasks", http.HandlerFunc(taskHandler))
-    
+     
     router.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/login", http.StatusSeeOther)
     })

@@ -4,7 +4,7 @@ import (
     "fmt"
     "database/sql"
     
-    "register-service/models"
+    "github.com/MafiaLogiki/common/domain"
 
     _ "github.com/lib/pq"
 )
@@ -31,7 +31,7 @@ func checkIfUsernameValid(username string) (bool) {
     return err != nil
 }
 
-func CreateNewUser(newUser user.User) (int, error) {
+func CreateNewUser(newUser domain.User) (int, error) {
     
     if !checkIfUsernameValid(newUser.Username) {
         fmt.Printf("%v", newUser.Username)

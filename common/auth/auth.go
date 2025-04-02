@@ -3,6 +3,7 @@ package auth
 import (
     "fmt"
     "strconv"
+    "net/http"
 
     "github.com/golang-jwt/jwt/v5"
     "github.com/MafiaLogiki/common/logger"
@@ -50,4 +51,18 @@ func CreateToken (l logger.Logger, id int) (string, error) {
 
     l.Info("Creating token done successfully")
     return tokenString, nil
+}
+
+func CreateAndAddTokenToCookie(l logger.Logger, w http.ResponseWriter, id int) {
+    token, err := CreateToken(l, id)
+
+    if err != nil {
+        http.Error(w, "Error in creating token", http.StatusBadRequest)
+    }
+
+    http.SetCookie(w, &http.Cookie {
+       Name: "token",
+       Value: token,
+       Path: "/",
+   })
 }
