@@ -1,19 +1,21 @@
 package handlers
 
 import (
-    "net/http"
-    "strconv"
-    "encoding/json"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
 
-    "task-service/internal/repository"
-    "task-service/internal/validators"
-    
-    "github.com/MafiaLogiki/common/domain"
-    "github.com/MafiaLogiki/common/middleware"
-    "github.com/MafiaLogiki/common/auth"
-    "github.com/MafiaLogiki/common/logger"
+	"task-service/internal/config"
+	"task-service/internal/repository"
+	"task-service/internal/validators"
 
-    "github.com/go-chi/chi/v5"
+	"github.com/MafiaLogiki/common/auth"
+	"github.com/MafiaLogiki/common/domain"
+	"github.com/MafiaLogiki/common/logger"
+	"github.com/MafiaLogiki/common/middleware"
+
+	"github.com/go-chi/chi/v5"
 )
 
 
@@ -48,7 +50,7 @@ func GetTaskByIdHandler (w http.ResponseWriter, r *http.Request) () {
     json.NewEncoder(w).Encode(task)
 }
 
-func CreateAndRunServer (address string, l logger.Logger) error {
+func CreateAndRunServer (cfg *config.Config, l logger.Logger) error {
     
     router := chi.NewRouter()
 
@@ -65,7 +67,7 @@ func CreateAndRunServer (address string, l logger.Logger) error {
     })
 
     httpServer := &http.Server{
-        Addr: address,
+        Addr: fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port),
         Handler: router,
     }
     

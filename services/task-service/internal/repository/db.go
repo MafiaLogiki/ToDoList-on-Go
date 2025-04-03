@@ -1,19 +1,33 @@
 package db
 
 import (
-    "fmt"
-    "database/sql"
-    
-    "github.com/MafiaLogiki/common/domain"
+	"database/sql"
+	"fmt"
+	"task-service/internal/config"
 
-    _ "github.com/lib/pq"
+	"github.com/MafiaLogiki/common/domain"
+
+	_ "github.com/lib/pq"
 )
 
 var database *sql.DB
 
-func ConnectToDatabase() (error) {
+func ConnectToDatabase(cfg *config.Config) (error) {
+    databaseInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable",
+        cfg.Postgres.Host,
+        cfg.Postgres.Port,
+        cfg.Postgres.HostName,
+        cfg.Postgres.Password,
+        cfg.Postgres.DBName,
+    )
+    
     var err error
-    database, err = sql.Open("postgres", "host=localhost port=5432 user=postgres password=1234 dbname=todolist_database sslmode=disable");
+    database, err = sql.Open("postgres", databaseInfo)
+
+    if database.Ping() != nil {
+        return database.Ping()
+    }
+
     return err
 }
 
