@@ -5,7 +5,8 @@ import (
     "net/http"
     "encoding/json"
 
-    "auth-service/internals/repository"
+    "auth-service/internal/repository"
+    "auth-service/internal/config"
     
     "github.com/go-chi/chi/v5"
     
@@ -66,7 +67,7 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         json.NewEncoder(w).Encode(map[string]string {"token": token})
 }
 
-func StartServer(addr string, l logger.Logger) error {
+func StartServer(cfg *config.Config, l logger.Logger) error {
     r := chi.NewRouter()
     h := NewHandler(l)
 
@@ -76,10 +77,10 @@ func StartServer(addr string, l logger.Logger) error {
     h.Login(r)
 
     server := &http.Server {
-        Addr: addr,
+        Addr: fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port),
         Handler: r,
     }
 
-    defer l.Info("Server is running on :8080")
+    l.Info(fmt.Sprintf("Server is running on %s:%s", cfg.Listen.BindIp, cfg.Listen.Port))
     return server.ListenAndServe()
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-    "auth-service/internals/repository"
-    "auth-service/internals/handlers"
+    "auth-service/internal/repository"
+    "auth-service/internal/handlers"
+    "auth-service/internal/config"
 
     "github.com/MafiaLogiki/common/logger"
 )
@@ -19,7 +20,9 @@ password_hash VARCHAR(256) - NOT NULL
 
 func main() { 
     logger := logger.NewLogger()
-    err := db.ConnectToDatabase()
+    cfg := config.GetConfig(logger)
+
+    err := db.ConnectToDatabase(cfg)
 
     if err != nil {
         logger.Fatal("Error in database connection")
@@ -28,7 +31,7 @@ func main() {
     defer db.CloseConnection()
     logger.Info("Database connetcion is ok")
 
-    err2 := handlers.StartServer(":8080", logger)
+    err2 := handlers.StartServer(cfg, logger)
     
     if err2 != nil {
         logger.Fatal("Error in server starting")

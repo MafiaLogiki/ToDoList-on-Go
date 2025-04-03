@@ -18,6 +18,7 @@ type Logger interface {
     Warn(args ...interface{})
     Debug(args ...interface{})
     Error(args ...interface{})
+    Fatal(args ...interface{})
 }
 
 type LoggingResponseWriter struct {
