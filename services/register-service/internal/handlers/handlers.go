@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/MafiaLogiki/common/auth"
 	"github.com/MafiaLogiki/common/domain"
 	"github.com/MafiaLogiki/common/logger"
 
+	"register-service/internal/config"
 	"register-service/internal/repository"
 
 	"github.com/go-chi/chi/v5"
@@ -43,7 +45,7 @@ func (h *handler) postRegisterHandler(w http.ResponseWriter, r *http.Request) {
     auth.CreateAndAddTokenToCookie(h.l, w, id)
 }
 
-func CreateAndRunServer(addr string, l logger.Logger) {
+func CreateAndRunServer(cfg *config.Config, l logger.Logger) {
     
     router := chi.NewRouter()
     
@@ -51,7 +53,7 @@ func CreateAndRunServer(addr string, l logger.Logger) {
     router.HandleFunc("/api/register", h.postRegisterHandler)
     
     httpServer := &http.Server {
-        Addr: ":8081",
+        Addr: fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port),
         Handler: router,
     }
     

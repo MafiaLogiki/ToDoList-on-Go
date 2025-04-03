@@ -1,23 +1,25 @@
 package main
 
 import (
-    "fmt"
-    "register-service/internal/repository"
-    "register-service/internal/handlers"
+	"register-service/internal/config"
+	"register-service/internal/handlers"
+	"register-service/internal/repository"
 
-    "github.com/MafiaLogiki/common/logger"
+	"github.com/MafiaLogiki/common/logger"
 )
 
 
 func main() {
     l := logger.NewLogger()
-    err := db.ConnectToDatabase("localhost", "5432", "postgres", "1234", "users")
+    cfg := config.GetConfig(l)
+
+    err := db.ConnectToDatabase(cfg)
 
     if err != nil {
-        fmt.Printf("Error: %v", err)
+        l.Fatal(err)
         return
     }
     defer db.CloseConnection()
 
-    handlers.CreateAndRunServer(":8080", l)
+    handlers.CreateAndRunServer(cfg, l)
 }
