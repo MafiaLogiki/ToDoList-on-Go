@@ -1,18 +1,18 @@
 package db
 
 import (
-    "fmt"
-    "database/sql"
-    
-    "auth-service/internal/config"
+	"database/sql"
+	"fmt"
 
-    _ "github.com/lib/pq"
+	"auth-service/internal/config"
+
+	_ "github.com/lib/pq"
 )
 
 var database *sql.DB
 
 func ConnectToDatabase(cfg *config.Config) (error)  {
-    databaseInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v",
+    databaseInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable",
         cfg.Postgres.Host,
         cfg.Postgres.Port,
         cfg.Postgres.HostName,

@@ -6,8 +6,8 @@ listen:
   port: 8081
 
 postgres:
-  host: localhost
-  port: 5432
+  host: postgres
+  db_port: 5432
   host_name: postgres
   password: 1234
   db_name: users

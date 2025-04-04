@@ -1,6 +1,8 @@
 package main
 
 import (
+    "fmt"
+
     "auth-service/internal/repository"
     "auth-service/internal/handlers"
     "auth-service/internal/config"
@@ -25,6 +27,7 @@ func main() {
     err := db.ConnectToDatabase(cfg)
 
     if err != nil {
+        logger.Info(fmt.Sprintf("%v", err))
         logger.Fatal("Error in database connection")
         return
     }

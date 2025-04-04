@@ -15,8 +15,8 @@ type Config struct {
     } `yaml:"listen"`
 
     Postgres struct {
-        Host string `yaml:"Host"` 
-        Port string `yaml:"Port"`
+        Host string `yaml:"host"` 
+        Port string `yaml:"db_ort"`
         HostName string `yaml:"host_name"`
         Password string `yaml:"password"`
         DBName string `yaml:"db_name"`

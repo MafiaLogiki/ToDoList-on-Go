@@ -3,11 +3,11 @@
 is_debug: true
 listen:
   bind_ip: 0.0.0.0
-  port: 8081
+  port: 8082
 
 postgres:
-  host: localhost
-  port: 5432
+  host: postgres
+  db_port: 5432
   host_name: postgres
   password: 1234
   db_name: users

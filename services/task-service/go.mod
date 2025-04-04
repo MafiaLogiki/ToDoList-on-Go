@@ -4,6 +4,8 @@ go 1.22.2
 
 replace github.com/MafiaLogiki/common/auth => ../../common/auth
 replace github.com/MafiaLogiki/common/domain => ../../common/domain
+replace github.com/MafiaLogiki/common/logger => ../../common/logger
+replace github.com/MafiaLogiki/common/middleware => ../../common/middleware
 
 require (
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
