@@ -19,7 +19,8 @@ func main() {
         l.Fatal(err)
         return
     }
+    l.Info("Database connection in ok")
     defer db.CloseConnection()
-
+    
     handlers.CreateAndRunServer(cfg, l)
 }

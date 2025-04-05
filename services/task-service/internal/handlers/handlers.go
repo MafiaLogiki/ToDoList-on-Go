@@ -8,7 +8,7 @@ import (
 
 	"task-service/internal/config"
 	"task-service/internal/repository"
-	"task-service/internal/validators"
+	_ "task-service/internal/validators"
 
 	"github.com/MafiaLogiki/common/auth"
 	"github.com/MafiaLogiki/common/domain"
@@ -23,6 +23,7 @@ func GetAllTasksForUserHandler(w http.ResponseWriter, r *http.Request) () {
     var tasks []domain.Task
 
     tokenString, _ := r.Cookie("token") // No error handling because authmiddleware
+    fmt.Print("AAAAAAAAAAAAAAAAAAAAA\n\n\n\n");
 
     id, err := auth.GetIdFromToken(tokenString.Value)
     if err != nil {
@@ -57,14 +58,16 @@ func CreateAndRunServer (cfg *config.Config, l logger.Logger) error {
     router.Use(logger.LoggerMiddleware)
     router.Use(middleware.AuthenticateMiddleware(l))
 
-    router.Route("/api/tasks", func (r chi.Router) {
-        r.Get("/", GetAllTasksForUserHandler)
-        r.With(validators.ValidateID).Get("/{id}", GetTaskByIdHandler)
-    })
+    // router.Route("/api/tasks", func (r chi.Router) {
+    //    r.Get("/", GetAllTasksForUserHandler)
+    //    r.With(validators.ValidateID).Get("/{id}", GetTaskByIdHandler)
+    // })
+
+    router.Get("/api/tasks", GetAllTasksForUserHandler);
      
-    router.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-        http.Redirect(w, r, "/login", http.StatusSeeOther)
-    })
+    //router.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+    //    http.Redirect(w, r, "/login", http.StatusSeeOther)
+    //})
 
     httpServer := &http.Server{
         Addr: fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port),
@@ -73,4 +76,3 @@ func CreateAndRunServer (cfg *config.Config, l logger.Logger) error {
     
     return httpServer.ListenAndServe()
 }
-

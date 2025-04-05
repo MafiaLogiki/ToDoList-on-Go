@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Список задач</title>
-    <link rel="stylesheet" href="/static/task_style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="task-board-container">
@@ -21,30 +21,31 @@
             const errorMessageElement = document.getElementById('error-message');
 
             try {
-                // Отправляем GET-запрос к API
-                const response = await fetch('/api/tasks', {
+                const response = await fetch('http://localhost:8080/api/tasks/', {
                     method: 'GET',
+                    credentials: 'include', // Важно для работы с куками
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
                 });
+
+                if (response.status === 401) {
+                    window.location.href = 'http://localhost:8080/login';
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error(`Ошибка сервера: ${response.status}`);
                 }
 
-                // Парсим JSON-ответ
                 const tasks = await response.json();
-
-                // Проверяем, что данные пришли в ожидаемом формате
+                
                 if (!Array.isArray(tasks)) {
                     throw new Error('Некорректный формат данных');
                 }
 
-                // Очищаем доску перед добавлением новых задач
                 taskBoardElement.innerHTML = '';
 
-                // Добавляем задачи в виде карточек
                 tasks.forEach((task, index) => {
                     const card = document.createElement('div');
                     card.className = 'task-card';
@@ -68,9 +69,9 @@
                     taskBoardElement.appendChild(card);
                 });
             } catch (error) {
-                // Обработка ошибок
                 errorMessageElement.textContent = error.message;
                 errorMessageElement.style.display = 'block';
+                console.error('Ошибка при загрузке задач:', error);
             }
         });
     </script>

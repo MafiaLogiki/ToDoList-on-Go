@@ -77,6 +77,7 @@ var logger *logrus.Logger
 func NewLogger() *logrus.Logger { 
     logger = logrus.New()
     
+    logger.SetLevel(logrus.DebugLevel);
     logger.SetOutput(os.Stdout)
     logger.SetReportCaller(true)
     logger.SetFormatter(&customTextFormatter{})
