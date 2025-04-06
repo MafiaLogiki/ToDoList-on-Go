@@ -23,17 +23,19 @@ func GetAllTasksForUserHandler(w http.ResponseWriter, r *http.Request) () {
     var tasks []domain.Task
 
     tokenString, _ := r.Cookie("token") // No error handling because authmiddleware
-    fmt.Print("AAAAAAAAAAAAAAAAAAAAA\n\n\n\n");
 
     id, err := auth.GetIdFromToken(tokenString.Value)
     if err != nil {
+        fmt.Printf("%v\n%v\n", err, tokenString)
         http.Error(w, "Error", http.StatusBadRequest)
         return
     }
 
     tasks, err = db.GetAllTasksByUserId(id)
     if err != nil {
+        fmt.Printf("%v", err)
         http.Error(w, "Error", http.StatusBadRequest)
+        return
     }
     
     json.NewEncoder(w).Encode(tasks)

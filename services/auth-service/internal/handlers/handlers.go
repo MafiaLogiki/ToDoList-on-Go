@@ -1,18 +1,18 @@
 package handlers
 
 import (
-    "fmt"
-    "net/http"
-    "encoding/json"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
-    "auth-service/internal/repository"
-    "auth-service/internal/config"
-    
-    "github.com/go-chi/chi/v5"
-    
-    "github.com/MafiaLogiki/common/domain"
-    "github.com/MafiaLogiki/common/logger"
-    "github.com/MafiaLogiki/common/middleware"
+	"auth-service/internal/config"
+	"auth-service/internal/repository"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/MafiaLogiki/common/auth"
+	"github.com/MafiaLogiki/common/domain"
+	"github.com/MafiaLogiki/common/logger"
 )
 
 type handler struct {
@@ -27,7 +27,6 @@ func NewHandler(logger logger.Logger) *handler {
 
 func (h *handler) Login(r *chi.Mux) {
     r.Post("/api/login", h.PostLoginHandler)
-    r.With(middleware.AuthenticateMiddleware(h.l)).HandleFunc("/*", func (w http.ResponseWriter, r *http.Request){})
 }
 
 func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
@@ -35,21 +34,14 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         err := json.NewDecoder(r.Body).Decode(&req) 
    
         if err != nil {
-            h.l.Error("Can't decode json file")
-            json.NewEncoder(w).Encode(map[string]string{
-                "Description": "Error in input json decoding", 
-                "Info": fmt.Sprintf("%v", err), 
-                "Error code": fmt.Sprintf("%v", http.StatusBadRequest), 
-            })
+            h.l.Error("Can't decode json file", err)
+            http.Error(w, "Error", http.StatusBadRequest)
             return
         }
 
-        username := req.Username
-        password := req.Password
-
-        token := db.GetUserToken(username, password)
         
-        if token == "" {
+        id := db.GetIdByUserData(req) 
+        if id == 0 {
             h.l.Error("Wrong username or password") 
             http.Error(w, "Bad request", http.StatusBadRequest)
             json.NewEncoder(w).Encode(map[string]int {
@@ -58,13 +50,7 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
             return
         }
         
-        http.SetCookie(w, &http.Cookie{
-            Name: "token",
-            Value: token,
-            Path: "/",
-        })
-
-        json.NewEncoder(w).Encode(map[string]string {"token": token})
+        auth.CreateAndAddTokenToCookie(h.l, w, id)
 }
 
 func StartServer(cfg *config.Config, l logger.Logger) error {
@@ -72,7 +58,7 @@ func StartServer(cfg *config.Config, l logger.Logger) error {
     h := NewHandler(l)
 
     r.Use(logger.LoggerMiddleware)
-    r.Use(middleware.AuthenticateMiddleware(l))
+    // r.Use(middleware.AuthenticateMiddleware(l))
 
     h.Login(r)
 

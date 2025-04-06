@@ -2,7 +2,6 @@ package auth
 
 import (
     "fmt"
-    "strconv"
     "net/http"
 
     "github.com/golang-jwt/jwt/v5"
@@ -30,9 +29,8 @@ func VerifyToken(l logger.Logger, tokenString string) (*jwt.Token, error) {
 
 func GetIdFromToken(token string) (int, error) {
     parsedToken, _ := jwt.Parse(token, func (token *jwt.Token) (interface {}, error) {return secretKey, nil})
-    sub, _ := parsedToken.Claims.GetSubject()
-    id, err := strconv.Atoi(sub)
-    return id, err
+    claims, _ := parsedToken.Claims.(jwt.MapClaims)
+    return int(claims["sub"].(float64)), nil
 }
 
 
@@ -57,7 +55,8 @@ func CreateAndAddTokenToCookie(l logger.Logger, w http.ResponseWriter, id int) {
     token, err := CreateToken(l, id)
 
     if err != nil {
-        http.Error(w, "Error in creating token", http.StatusBadRequest)
+        http.Error(w, "Error while creating token", http.StatusBadRequest)
+        return
     }
 
     http.SetCookie(w, &http.Cookie {

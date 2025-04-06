@@ -90,13 +90,10 @@ func LoggerMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
         ww := NewLoggingResponseWriter(w, r.ProtoMajor)
         
-        var request []byte
-        json.NewDecoder(r.Body).Decode(&request)
 
         logger.WithFields(logrus.Fields{
             "method": r.Method,
-            "path": r.URL.Path,
-            "request": string(request)}).Info("Request was sended")
+            "path": r.URL.Path}).Info("Request was sended")
         
 
         next.ServeHTTP(ww, r)

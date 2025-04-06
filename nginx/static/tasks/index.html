@@ -21,7 +21,7 @@
             const errorMessageElement = document.getElementById('error-message');
 
             try {
-                const response = await fetch('http://localhost:8080/api/tasks/', {
+                const response = await fetch('http://localhost:8080/api/tasks', {
                     method: 'GET',
                     credentials: 'include', // Важно для работы с куками
                     headers: {

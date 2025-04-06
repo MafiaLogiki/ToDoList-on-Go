@@ -49,7 +49,7 @@ func extractTasksFromRows(rows *sql.Rows) ([]domain.Task, error) {
     var tasks []domain.Task
     for rows.Next() {
         var new_task domain.Task
-        if err := rows.Scan(&new_task.Id, &new_task.Title, &new_task.Description, &new_task.Status, &new_task.UserId); err != nil {
+        if err := rows.Scan(&new_task.Id, &new_task.Title, &new_task.Description, &new_task.UserId); err != nil {
             return nil, err 
         }
         tasks = append(tasks, new_task)
@@ -58,7 +58,7 @@ func extractTasksFromRows(rows *sql.Rows) ([]domain.Task, error) {
 }
 
 func GetAllTasksByUserId(userID int) ([]domain.Task, error) {
-    rows, err := database.Query("SELECT * FROM tasks WHERE user_id = $1", userID)
+    rows, err := database.Query("SELECT * FROM tasks WHERE owner_id = $1", userID)
     if err != nil {
         return nil, fmt.Errorf("Error in query: %w", err)
     }
