@@ -66,12 +66,27 @@ services:
       kafka:
         condition: service_healthy
 
+
   notification-service:
     image: notification-service
     container_name: notification-serivce
     build:
       dockerfile: ./services/notification-service/notification-service.Dockerfile
       context: .
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+          
+  message-service:
+    image: message-service
+    container_name: message-service
+
+    build:
+      dockerfile: ./services/message-service/message-service.Dockerfile
+      context: .
+    expose:
+      - "8084"
     depends_on:
       kafka:
         condition: service_healthy

@@ -1,6 +1,6 @@
 module message-service
 
-go 1.24.2
+go 1.24.1
 
 replace github.com/MafiaLogiki/common/logger => ../../common/logger
 

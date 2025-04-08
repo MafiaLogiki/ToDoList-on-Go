@@ -11,7 +11,6 @@ import (
 	"auth-service/internal/repository"
 
 	"github.com/go-chi/chi/v5"
-    "github.com/IBM/sarama"
 
 	"github.com/MafiaLogiki/common/auth"
 	"github.com/MafiaLogiki/common/domain"
@@ -20,13 +19,11 @@ import (
 
 type handler struct {
     l logger.Logger
-    producer sarama.AsyncProducer
 }
 
-func NewHandler(logger logger.Logger, producer sarama.AsyncProducer) *handler {
+func NewHandler(logger logger.Logger) *handler {
     return &handler {
         l: logger,
-        producer: producer,
     }
 }
 
@@ -63,20 +60,13 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
             return
         }
 
-        msg := &sarama.ProducerMessage {
-            Topic: "user",
-            Key: sarama.StringEncoder("logged"),
-            Value: sarama.ByteEncoder(buffer.Bytes()),
-        }
-
-        h.producer.Input() <- msg
 
         auth.CreateAndAddTokenToCookie(h.l, w, id)
 }
 
-func StartServer(cfg *config.Config, l logger.Logger, producer sarama.AsyncProducer) error {
+func StartServer(cfg *config.Config, l logger.Logger) error {
     r := chi.NewRouter()
-    h := NewHandler(l, producer)
+    h := NewHandler(l)
 
     r.Use(logger.LoggerMiddleware)
     // r.Use(middleware.AuthenticateMiddleware(l))

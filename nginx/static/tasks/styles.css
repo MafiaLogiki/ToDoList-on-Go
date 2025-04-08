@@ -141,3 +141,55 @@ h1 {
     background-size: 15px;
     padding-right: 30px;
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="task-board-container">
+        <h1>Доска задач</h1>
+        <div id="error-message" class="error-message"></div>
+        <button id="create-task-btn" class="create-task-btn">Создать задачу</button>
+        <div id="task-board" class="task-board">
+            <!-- Карточки задач будут загружены динамически -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const taskBoardElement = document.getElementById('task-board');
+            const errorMessageElement = document.getElementById('error-message');
+            const createTaskBtn = document.getElementById('create-task-btn');
+
+            // Обработчик нажатия на кнопку создания задачи
+            createTaskBtn.addEventListener('click', () => {
+                window.location.href = 'create-task.html'; // Переход на страницу создания задачи
+            });
+
+            try {
+                const response = await fetch('http://localhost:8080/api/tasks', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                if (response.status === 401) {
+                    window.location.href = 'http://localhost:8080/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
+
+                const tasks = await response.json();
+                
+                if (!Array.isArray(tasks)) {
+

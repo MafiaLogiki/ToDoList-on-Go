@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-    _ "bytes"
+    "bytes"
 
 	"task-service/internal/config"
 	"task-service/internal/repository"
@@ -80,17 +80,16 @@ func (h *handler) CreateTaskHandler (w http.ResponseWriter, r *http.Request) {
     h.l.Info(fmt.Sprintf("Title: %v, Decription: %v, Status: %v, OwnerID: %v", task.Title, task.Description, task.Status, task.UserId))
 
     
-    _, errQuery := db.AddTaskToTable(task)
+    result, errQuery := db.AddTaskToTable(task)
     if errQuery != nil {
         http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
         return
     }
     
-    // id, _ := result.LastInsertId()
-    // data, _ := json.Marshal(id)
+    insertedId, _ := result.LastInsertId()
+    data, _ := json.Marshal(insertedId)
 
-    /*
-    resp, errResp := http.Post("message-service:8084", "application/json", bytes.NewBuffer(data))
+    resp, errResp := http.Post("http://message-service:8084/api/message/create", "application/json", bytes.NewBuffer(data))
     
     if errResp != nil {
         http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
@@ -100,7 +99,6 @@ func (h *handler) CreateTaskHandler (w http.ResponseWriter, r *http.Request) {
         http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
         return
     }
-    */
     json.NewEncoder(w).Encode(map[string]string {
         "status": "success",
     })

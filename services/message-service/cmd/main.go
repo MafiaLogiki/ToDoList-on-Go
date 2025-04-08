@@ -13,5 +13,5 @@ func main() {
     cfg := config.GetConfig(logger)
 
     producer := kafka.StartProducing(cfg, logger)
-    handlers.CreateAndRunServer(cfg, producer)
+    handlers.CreateAndRunServer(cfg, logger, producer)
 }

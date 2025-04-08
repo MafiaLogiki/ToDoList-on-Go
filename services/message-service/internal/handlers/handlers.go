@@ -1,11 +1,13 @@
 package handlers
 
 import (
-    "net/http"
-    "github.com/MafiaLogiki/common/logger"
-    "message-service/internal/config"
-    "github.com/go-chi/chi/v5"
-    "github.com/IBM/sarama"
+	"fmt"
+	"message-service/internal/config"
+	"net/http"
+
+	"github.com/IBM/sarama"
+	"github.com/MafiaLogiki/common/logger"
+	"github.com/go-chi/chi/v5"
 )
 
 type handler struct {
@@ -20,25 +22,22 @@ func NewHandler (log logger.Logger, prod sarama.AsyncProducer) *handler {
    }
 }
 
-func (h *handler) newUserHandler(w http.ResponseWriter, r *http.Request) {
-    
+func (h *handler) taskCreatedHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Println("Recieved")
 }
 
-func (h *handler) loginHandler(w http.ResponseWriter, r *http.Request) {
-    
-}
-
-func (h *handler) newTaskHandler(w http.ResponseWriter, r *http.Request) {
-    
-}
-
-func (h *handler) getAllTasksHandler(w http.ResponseWriter, r *http.Request) {
-    
-}
-
-
-func CreateAndRunServer(cfg *config.Config, producer sarama.AsyncProducer) {
+func CreateAndRunServer(cfg *config.Config, l logger.Logger, producer sarama.AsyncProducer) error {
     router := chi.NewRouter()
+    h := NewHandler(l, producer)
 
+    router.Use(logger.LoggerMiddleware)
 
+    router.Post("/api/message/create", h.taskCreatedHandler)
+
+    server := &http.Server {
+        Addr: fmt.Sprintf("%v:%v", cfg.Listen.BindIp, cfg.Listen.Port),
+        Handler: router,
+    }
+
+    return server.ListenAndServe()
 }
