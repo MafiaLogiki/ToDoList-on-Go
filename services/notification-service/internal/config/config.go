@@ -10,7 +10,8 @@ import (
 type Config struct {
     IsDebug *bool `yaml:"is_debug"`
     Kafka struct {
-        
+        host string `yaml:"host"`
+        port string `yaml:"port"`
     } `yaml:"kafka"`
 }
 

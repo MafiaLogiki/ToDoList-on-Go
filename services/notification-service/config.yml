@@ -1,0 +1,6 @@
+---
+
+is_debug: true
+kafka:
+  host: kafka
+  port: 9092

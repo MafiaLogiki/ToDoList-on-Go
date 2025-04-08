@@ -2,7 +2,10 @@ FROM golang:1.24 AS builder
 
 WORKDIR /app/notification-service/
 
+COPY ./common /common
 COPY ./services/notification-service/ .
+
+
 RUN go mod download
 RUN go mod tidy
 
