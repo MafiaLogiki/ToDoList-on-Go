@@ -40,7 +40,7 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
    
         if err != nil {
             h.l.Error("Can't decode json file", err)
-            http.Error(w, "Error", http.StatusBadRequest)
+            http.Error(w, `{"status": "error", "message": "Invalid JSON"}`, http.StatusBadRequest)
             return
         }
 
@@ -48,7 +48,7 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         id := db.GetIdByUserData(req) 
         if id == 0 {
             h.l.Error("Wrong username or password") 
-            http.Error(w, "Bad request", http.StatusBadRequest)
+            http.Error(w, `{"status": "error", "message: "User doesn't exist"}`, http.StatusBadRequest)
             json.NewEncoder(w).Encode(map[string]int {
                 "error": http.StatusBadRequest,
             })
@@ -57,8 +57,10 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
         
         var buffer bytes.Buffer
         err = gob.NewEncoder(&buffer).Encode(req)
+
         if err != nil {
             h.l.Error("Can't encode user.Domain into bytes")
+            return
         }
 
         msg := &sarama.ProducerMessage {

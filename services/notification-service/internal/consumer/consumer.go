@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"fmt"
 	"notification-service/internal/config"
 
 	"github.com/IBM/sarama"
+	"github.com/MafiaLogiki/common/domain"
 	"github.com/MafiaLogiki/common/logger"
-    "github.com/MafiaLogiki/common/domain"
 )
 
 type consumerGroupHandler struct {
@@ -32,7 +33,7 @@ func (h consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
         var user domain.User
         gob.NewDecoder(buffer).Decode(&user)
 
-        h.l.Info("Received: user %s logged in\n", user.Username)
+        h.l.Info(fmt.Sprintf("Received: user %s logged in\n", user.Username))
         sess.MarkMessage(msg, "") 
     }
 

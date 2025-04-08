@@ -18,8 +18,9 @@ CREATE TABLE tasks (
     task_id SERIAL,
     title VARCHAR(50) NOT NULL,
     description VARCHAR(200) NOT NULL,
+    status VARCHAR(10) NOT NULL,
     owner_id INT,
     PRIMARY KEY(task_id)
 );
 
-INSERT INTO tasks VALUES(1, 'test title', 'test description', 1);
+INSERT INTO tasks(title, description, status, owner_id) VALUES('test title', 'test description', 'To do', 1);

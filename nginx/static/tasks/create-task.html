@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать задачу</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="task-board-container">
+        <h1>Создать новую задачу</h1>
+        <div id="error-message" class="error-message"></div>
+        <form id="task-form">
+            <div class="form-group">
+                <label for="task-title">Название задачи:</label>
+                <input type="text" id="task-title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="task-description">Описание задачи:</label>
+                <textarea id="task-description" name="description" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="task-status">Статус:</label>
+                <select id="task-status" name="status" required>
+                    <option value="To Do">To Do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
+                </select>
+            </div>
+            <button type="submit" class="create-task-btn">Создать</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-description').value;
+            const task_status = document.getElementById('task-status').value;
+            const errorMessageElement = document.getElementById('error-message');
+
+            try {
+                const response = await fetch('http://localhost:8080/api/tasks/create', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, description, "status": task_status, "userId": 0 })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
+
+                // После успешного создания задачи возвращаемся на страницу задач
+                window.location.href = '/tasks';
+            } catch (error) {
+                errorMessageElement.textContent = error.message;
+                errorMessageElement.style.display = 'block';
+                console.error('Ошибка при создании задачи:', error);
+            }
+        });
+    </script>
+</body>
+</html>

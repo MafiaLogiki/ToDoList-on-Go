@@ -10,6 +10,7 @@
     <div class="task-board-container">
         <h1>Доска задач</h1>
         <div id="error-message" class="error-message"></div>
+        <button id="create-task-btn" class="create-task-btn">Создать задачу</button>
         <div id="task-board" class="task-board">
             <!-- Карточки задач будут загружены динамически -->
         </div>
@@ -19,11 +20,17 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const taskBoardElement = document.getElementById('task-board');
             const errorMessageElement = document.getElementById('error-message');
+            const createTaskBtn = document.getElementById('create-task-btn');
+
+            // Обработчик нажатия на кнопку создания задачи
+            createTaskBtn.addEventListener('click', () => {
+                window.location.href = 'create-task.html'; // Переход на страницу создания задачи
+            });
 
             try {
                 const response = await fetch('http://localhost:8080/api/tasks', {
                     method: 'GET',
-                    credentials: 'include', // Важно для работы с куками
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },
