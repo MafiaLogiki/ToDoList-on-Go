@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+    "encoding/gob"
+    "bytes"
 	"fmt"
 	"net/http"
 
@@ -9,6 +11,7 @@ import (
 	"auth-service/internal/repository"
 
 	"github.com/go-chi/chi/v5"
+    "github.com/IBM/sarama"
 
 	"github.com/MafiaLogiki/common/auth"
 	"github.com/MafiaLogiki/common/domain"
@@ -17,11 +20,13 @@ import (
 
 type handler struct {
     l logger.Logger
+    producer sarama.AsyncProducer
 }
 
-func NewHandler(logger logger.Logger) *handler {
+func NewHandler(logger logger.Logger, producer sarama.AsyncProducer) *handler {
     return &handler {
         l: logger,
+        producer: producer,
     }
 }
 
@@ -50,12 +55,26 @@ func (h *handler) PostLoginHandler (w http.ResponseWriter, r *http.Request) () {
             return
         }
         
+        var buffer bytes.Buffer
+        err = gob.NewEncoder(&buffer).Encode(req)
+        if err != nil {
+            h.l.Error("Can't encode user.Domain into bytes")
+        }
+
+        msg := &sarama.ProducerMessage {
+            Topic: "user",
+            Key: sarama.StringEncoder("logged"),
+            Value: sarama.ByteEncoder(buffer.Bytes()),
+        }
+
+        h.producer.Input() <- msg
+
         auth.CreateAndAddTokenToCookie(h.l, w, id)
 }
 
-func StartServer(cfg *config.Config, l logger.Logger) error {
+func StartServer(cfg *config.Config, l logger.Logger, producer sarama.AsyncProducer) error {
     r := chi.NewRouter()
-    h := NewHandler(l)
+    h := NewHandler(l, producer)
 
     r.Use(logger.LoggerMiddleware)
     // r.Use(middleware.AuthenticateMiddleware(l))

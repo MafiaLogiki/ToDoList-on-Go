@@ -3,10 +3,13 @@ module notification-service
 go 1.24.2
 
 replace github.com/MafiaLogiki/common/logger => ../../common/logger
+replace github.com/MafiaLogiki/common/domain => ../../common/domain
 
 require github.com/IBM/sarama v1.45.1
 
 require (
+
+    github.com/MafiaLogiki/common/domain v0.0.0
 	github.com/MafiaLogiki/common/logger v0.0.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/BurntSushi/toml v1.2.1 // indirect

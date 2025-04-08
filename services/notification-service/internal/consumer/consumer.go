@@ -1,11 +1,14 @@
 package consumer
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"notification-service/internal/config"
 
 	"github.com/IBM/sarama"
 	"github.com/MafiaLogiki/common/logger"
+    "github.com/MafiaLogiki/common/domain"
 )
 
 type consumerGroupHandler struct {
@@ -24,7 +27,12 @@ func (h consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 func (h consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
     for msg := range claim.Messages() {
-        h.l.Info("Received: %s\n", string(msg.Value))
+        buffer := bytes.NewBuffer(msg.Value)
+
+        var user domain.User
+        gob.NewDecoder(buffer).Decode(&user)
+
+        h.l.Info("Received: user %s logged in\n", user.Username)
         sess.MarkMessage(msg, "") 
     }
 
@@ -44,7 +52,7 @@ func StartConsuming(cfg *config.Config, l logger.Logger) {
 
     handler := consumerGroupHandler{l: l}
     for {
-        err := consumer.Consume(context.Background(), []string{"user-logged"}, handler)
+        err := consumer.Consume(context.Background(), []string{"user"}, handler)
         if err != nil {
             l.Fatal("Error from consumer: ", err) 
         }

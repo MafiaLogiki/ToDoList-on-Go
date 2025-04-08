@@ -6,6 +6,7 @@ import (
     "auth-service/internal/repository"
     "auth-service/internal/handlers"
     "auth-service/internal/config"
+    prod "auth-service/internal/kafka-producer"
 
     "github.com/MafiaLogiki/common/logger"
 )
@@ -23,6 +24,7 @@ password_hash VARCHAR(256) - NOT NULL
 func main() { 
     logger := logger.NewLogger()
     cfg := config.GetConfig(logger)
+    producer := prod.StartProducing(cfg, logger)
 
     err := db.ConnectToDatabase(cfg)
 
@@ -34,7 +36,7 @@ func main() {
     defer db.CloseConnection()
     logger.Info("Database connetcion is ok")
 
-    err2 := handlers.StartServer(cfg, logger)
+    err2 := handlers.StartServer(cfg, logger, producer)
     
     if err2 != nil {
         logger.Fatal("Error in server starting")
