@@ -75,3 +75,7 @@ func GetTaskById(taskID int) (domain.Task, error) {
 
     return task, nil    
 }
+
+func UpdateTaskStatusById(taskId int, newTaskStatus string) {
+
+}

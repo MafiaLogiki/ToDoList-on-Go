@@ -89,16 +89,39 @@ func (h *handler) CreateTaskHandler (w http.ResponseWriter, r *http.Request) {
     insertedId, _ := result.LastInsertId()
     data, _ := json.Marshal(insertedId)
 
-    resp, errResp := http.Post("http://message-service:8084/api/message/create", "application/json", bytes.NewBuffer(data))
+    req, _ := http.NewRequest(http.MethodPost, "http://message-service:8084/api/message/create", bytes.NewBuffer([]byte(data)))
+    cookies := r.Cookies()
+
+    for _, cookie := range cookies {
+       req.AddCookie(cookie) 
+    }
+
+    resp, errResp := http.DefaultClient.Do(req) 
     
     if errResp != nil {
         http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
         return
     }
+
     if resp.StatusCode != http.StatusOK {
         http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
         return
     }
+
+    json.NewEncoder(w).Encode(map[string]string {
+        "status": "success",
+    })
+}
+
+func (h *handler) UpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
+    var newStatus string
+    err := json.NewDecoder(r.Body).Decode(&newStatus)
+
+    if err != nil {
+        http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
+        return
+    }
+
     json.NewEncoder(w).Encode(map[string]string {
         "status": "success",
     })
@@ -119,12 +142,9 @@ func CreateAndRunServer (cfg *config.Config, l logger.Logger) error {
 
     router.Route("/api/tasks", func (r chi.Router) {
        r.Get("/", h.GetAllTasksForUserHandler)
+       r.Put("/{id}/status", h.UpdateTaskStatus)
        r.Post("/create", h.CreateTaskHandler)
     })
-     
-    //router.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-    //    http.Redirect(w, r, "/login", http.StatusSeeOther)
-    //})
 
     httpServer := &http.Server{
         Addr: fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port),

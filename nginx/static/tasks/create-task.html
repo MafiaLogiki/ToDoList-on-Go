@@ -54,7 +54,6 @@
                     throw new Error(`Ошибка сервера: ${response.status}`);
                 }
 
-                // После успешного создания задачи возвращаемся на страницу задач
                 window.location.href = '/tasks';
             } catch (error) {
                 errorMessageElement.textContent = error.message;

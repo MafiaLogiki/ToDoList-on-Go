@@ -4,9 +4,12 @@ go 1.24.1
 
 replace github.com/MafiaLogiki/common/logger => ../../common/logger
 
+replace github.com/MafiaLogiki/common/auth => ../../common/auth
+
 require (
 	github.com/IBM/sarama v1.45.1
 	github.com/MafiaLogiki/common/logger v0.0.0
+	github.com/MafiaLogiki/common/auth v0.0.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 )

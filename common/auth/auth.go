@@ -60,6 +60,12 @@ func CreateAndAddTokenToCookie(l logger.Logger, w http.ResponseWriter, id int) {
         return
     }
     
+    http.SetCookie(w, &http.Cookie {
+       Name: "token",
+       Value: token,
+       Path: "/",
+   })
+    
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
 
@@ -68,9 +74,4 @@ func CreateAndAddTokenToCookie(l logger.Logger, w http.ResponseWriter, id int) {
         "data": id,
     })
 
-    http.SetCookie(w, &http.Cookie {
-       Name: "token",
-       Value: token,
-       Path: "/",
-   })
 }

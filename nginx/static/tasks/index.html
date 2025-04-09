@@ -12,7 +12,6 @@
         <div id="error-message" class="error-message"></div>
         <button id="create-task-btn" class="create-task-btn">Создать задачу</button>
         <div id="task-board" class="task-board">
-            <!-- Карточки задач будут загружены динамически -->
         </div>
     </div>
 
@@ -22,7 +21,6 @@
             const errorMessageElement = document.getElementById('error-message');
             const createTaskBtn = document.getElementById('create-task-btn');
 
-            // Обработчик нажатия на кнопку создания задачи
             createTaskBtn.addEventListener('click', () => {
                 window.location.href = 'create-task.html';
             });
@@ -48,6 +46,7 @@
                 const tasks = await response.json();
                 
                 if (!Array.isArray(tasks)) {
+                    return;
                     throw new Error('Некорректный формат данных');
                 }
 
@@ -56,7 +55,7 @@
                 tasks.forEach((task, index) => {
                     const card = document.createElement('div');
                     card.className = 'task-card';
-                    card.dataset.taskId = task.id; // Предполагается, что у задачи есть уникальный ID
+                    card.dataset.taskId = task.id;
 
                     const taskNumber = document.createElement('div');
                     taskNumber.className = 'task-number';
@@ -86,7 +85,6 @@
                     taskBoardElement.appendChild(card);
                 });
 
-                // Добавляем обработчик изменения статуса
                 document.querySelectorAll('.task-status-select').forEach(select => {
                     select.addEventListener('change', async (e) => {
                         const taskCard = e.target.closest('.task-card');
@@ -107,7 +105,6 @@
                                 throw new Error(`Ошибка сервера: ${response.status}`);
                             }
 
-                            // Обновляем визуально, если нужно (опционально)
                             e.target.className = `task-status status-${newStatus.toLowerCase().replace(/\s+/g, '-')}`;
                         } catch (error) {
                             errorMessageElement.textContent = error.message;

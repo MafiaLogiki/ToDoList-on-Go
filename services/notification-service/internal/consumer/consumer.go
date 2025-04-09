@@ -8,7 +8,6 @@ import (
 	"notification-service/internal/config"
 
 	"github.com/IBM/sarama"
-	"github.com/MafiaLogiki/common/domain"
 	"github.com/MafiaLogiki/common/logger"
 )
 
@@ -30,10 +29,12 @@ func (h consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
     for msg := range claim.Messages() {
         buffer := bytes.NewBuffer(msg.Value)
 
-        var user domain.User
+        var user struct {
+            userId int64
+        }
         gob.NewDecoder(buffer).Decode(&user)
 
-        h.l.Info(fmt.Sprintf("Received: user %s logged in\n", user.Username))
+        h.l.Info(fmt.Sprintf("Received: user %d create task\n", user.userId))
         sess.MarkMessage(msg, "") 
     }
 
@@ -53,7 +54,7 @@ func StartConsuming(cfg *config.Config, l logger.Logger) {
 
     handler := consumerGroupHandler{l: l}
     for {
-        err := consumer.Consume(context.Background(), []string{"user"}, handler)
+        err := consumer.Consume(context.Background(), []string{"task"}, handler)
         if err != nil {
             l.Fatal("Error from consumer: ", err) 
         }

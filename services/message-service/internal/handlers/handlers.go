@@ -7,6 +7,7 @@ import (
 
 	"github.com/IBM/sarama"
 	"github.com/MafiaLogiki/common/logger"
+	"github.com/MafiaLogiki/common/auth"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -23,7 +24,17 @@ func NewHandler (log logger.Logger, prod sarama.AsyncProducer) *handler {
 }
 
 func (h *handler) taskCreatedHandler(w http.ResponseWriter, r *http.Request) {
-    fmt.Println("Recieved")
+    
+    tokenString, _ := r.Cookie("token") 
+
+    id, _ := auth.GetIdFromToken(tokenString.Value)
+
+    msg := &sarama.ProducerMessage {
+        Topic: "task",
+        Key: sarama.StringEncoder("created"),
+        Value: sarama.ByteEncoder([]byte(fmt.Sprintf(`{"userId": %v}`, id))),
+    }
+    h.prod.Input() <- msg
 }
 
 func CreateAndRunServer(cfg *config.Config, l logger.Logger, producer sarama.AsyncProducer) error {

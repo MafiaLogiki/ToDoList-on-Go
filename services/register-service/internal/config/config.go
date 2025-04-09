@@ -16,7 +16,7 @@ type Config struct {
 
     Postgres struct {
         Host string `yaml:"host"` 
-        Port string `yaml:"db_ort"`
+        Port string `yaml:"db_port"`
         HostName string `yaml:"host_name"`
         Password string `yaml:"password"`
         DBName string `yaml:"db_name"`

@@ -13,7 +13,7 @@ import (
 var database *sql.DB
 
 func ConnectToDatabase(cfg *config.Config) (error)  {
-    databaseInfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v", 
+    databaseInfo := fmt.Sprintf(`host=%v port=%v user=%v password=%v dbname=%v sslmode=disable`, 
                                 cfg.Postgres.Host,
                                 cfg.Postgres.Port,
                                 cfg.Postgres.HostName,
@@ -40,19 +40,18 @@ func checkIfUsernameValid(username string) (bool) {
 func CreateNewUser(newUser domain.User) (int, error) {
     
     if !checkIfUsernameValid(newUser.Username) {
-        fmt.Printf("%v", newUser.Username)
         return 0, fmt.Errorf("Error. Username is busy")
     }
-
-    query := fmt.Sprintf("INSERT INTO users(username, password_hash) VALUES('%v', '%v') RETURNING id", 
+    
+    query := fmt.Sprintf(`INSERT INTO users(username, password_hash) VALUES('%s', '%s') RETURNING id`, 
                         newUser.Username,
                         newUser.Password)
-    
+
+    fmt.Println(newUser.Username, newUser.Password) 
     var id int
     err := database.QueryRow(query).Scan(&id)
     
     if err != nil {
-        fmt.Printf("testttt\n")
         return 0, err
     }
 
