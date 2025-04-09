@@ -9,6 +9,7 @@ import (
 
 	"task-service/internal/config"
 	"task-service/internal/repository"
+	"task-service/internal/validators"
 
 	"github.com/MafiaLogiki/common/auth"
 	"github.com/MafiaLogiki/common/domain"
@@ -113,9 +114,20 @@ func (h *handler) CreateTaskHandler (w http.ResponseWriter, r *http.Request) {
     })
 }
 
-func (h *handler) UpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
+func (h *handler) UpdateTaskStatusHandler(w http.ResponseWriter, r *http.Request) {
     var newStatus string
+
+    taskId, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
+
     err := json.NewDecoder(r.Body).Decode(&newStatus)
+
+    if err != nil {
+        http.Error(w, `{"status": "error"}`, http.StatusBadRequest)
+        return
+    }
+    
+    err = db.UpdateTaskStatusById(taskId, newStatus)
 
     if err != nil {
         http.Error(w, `{"status": "error"}`, http.StatusInternalServerError)
@@ -142,7 +154,7 @@ func CreateAndRunServer (cfg *config.Config, l logger.Logger) error {
 
     router.Route("/api/tasks", func (r chi.Router) {
        r.Get("/", h.GetAllTasksForUserHandler)
-       r.Put("/{id}/status", h.UpdateTaskStatus)
+       r.With(validators.ValidateID).Put("/{id}/status", h.UpdateTaskStatusHandler)
        r.Post("/create", h.CreateTaskHandler)
     })
 

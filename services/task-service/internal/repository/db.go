@@ -76,6 +76,9 @@ func GetTaskById(taskID int) (domain.Task, error) {
     return task, nil    
 }
 
-func UpdateTaskStatusById(taskId int, newTaskStatus string) {
-
+func UpdateTaskStatusById(taskId int, newTaskStatus string) error {
+    query := fmt.Sprintf(`UPDATE tasks SET status = %v WHERE task_id = %v`, newTaskStatus, taskId)
+    
+    _, err := database.Exec(query)
+    return err
 }
