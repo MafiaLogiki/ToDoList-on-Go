@@ -37,7 +37,7 @@ func CloseConnection() {
 
 func AddTaskToTable(Task domain.Task) (sql.Result, error) {
     execQuery := fmt.Sprintf(
-        `INSERT INTO tasks(title, description, status, user_id) VALUES(%v, %v, %v, %v)`,
+        `INSERT INTO tasks(title, description, status, owner_id) VALUES('%v', '%v', '%v', %v)`,
                                                                        Task.Title,
                                                                        Task.Description,
                                                                        Task.Status,
@@ -49,7 +49,7 @@ func extractTasksFromRows(rows *sql.Rows) ([]domain.Task, error) {
     var tasks []domain.Task
     for rows.Next() {
         var new_task domain.Task
-        if err := rows.Scan(&new_task.Id, &new_task.Title, &new_task.Description, &new_task.UserId); err != nil {
+        if err := rows.Scan(&new_task.Title, &new_task.Description, &new_task.Status, &new_task.UserId); err != nil {
             return nil, err 
         }
         tasks = append(tasks, new_task)
@@ -58,7 +58,7 @@ func extractTasksFromRows(rows *sql.Rows) ([]domain.Task, error) {
 }
 
 func GetAllTasksByUserId(userID int) ([]domain.Task, error) {
-    rows, err := database.Query("SELECT * FROM tasks WHERE owner_id = $1", userID)
+    rows, err := database.Query("SELECT title, description, status, owner_id FROM tasks WHERE owner_id = $1", userID)
     if err != nil {
         return nil, fmt.Errorf("Error in query: %w", err)
     }
@@ -67,11 +67,18 @@ func GetAllTasksByUserId(userID int) ([]domain.Task, error) {
 }
 
 func GetTaskById(taskID int) (domain.Task, error) {
-    row := database.QueryRow("SELECT * FROM tasks WHERE id = $1", taskID)
+    row := database.QueryRow("SELECT title, description, status, owner_id FROM tasks WHERE id = $1", taskID)
     var task domain.Task
-    if err := row.Scan(&task.Id, &task.Title, &task.Description, &task.Status, &task.UserId); err != nil {
+    if err := row.Scan(&task.Title, &task.Description, &task.Status, &task.UserId); err != nil {
         return task, err 
     }
 
     return task, nil    
+}
+
+func UpdateTaskStatusById(taskId int, newTaskStatus string) error {
+    query := fmt.Sprintf(`UPDATE tasks SET status = %v WHERE task_id = %v`, newTaskStatus, taskId)
+    
+    _, err := database.Exec(query)
+    return err
 }

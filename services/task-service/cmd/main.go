@@ -6,6 +6,8 @@ import (
 	"task-service/internal/repository"
 
 	"github.com/MafiaLogiki/common/logger"
+
+    _ "github.com/IBM/sarama"
 )
 
 
@@ -21,6 +23,8 @@ func main() {
     }
     l.Info("Database connection in ok")
     defer db.CloseConnection()
+
+    // kafkaConfig := sarama.
     
     handlers.CreateAndRunServer(cfg, l)
 }

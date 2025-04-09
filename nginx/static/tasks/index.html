@@ -10,8 +10,8 @@
     <div class="task-board-container">
         <h1>Доска задач</h1>
         <div id="error-message" class="error-message"></div>
+        <button id="create-task-btn" class="create-task-btn">Создать задачу</button>
         <div id="task-board" class="task-board">
-            <!-- Карточки задач будут загружены динамически -->
         </div>
     </div>
 
@@ -19,11 +19,16 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const taskBoardElement = document.getElementById('task-board');
             const errorMessageElement = document.getElementById('error-message');
+            const createTaskBtn = document.getElementById('create-task-btn');
+
+            createTaskBtn.addEventListener('click', () => {
+                window.location.href = 'create-task.html';
+            });
 
             try {
                 const response = await fetch('http://localhost:8080/api/tasks', {
                     method: 'GET',
-                    credentials: 'include', // Важно для работы с куками
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -41,6 +46,7 @@
                 const tasks = await response.json();
                 
                 if (!Array.isArray(tasks)) {
+                    return;
                     throw new Error('Некорректный формат данных');
                 }
 
@@ -49,6 +55,7 @@
                 tasks.forEach((task, index) => {
                     const card = document.createElement('div');
                     card.className = 'task-card';
+                    card.dataset.taskId = task.id;
 
                     const taskNumber = document.createElement('div');
                     taskNumber.className = 'task-number';
@@ -58,16 +65,55 @@
                     taskName.className = 'task-name';
                     taskName.textContent = task.title;
 
-                    const taskStatus = document.createElement('div');
-                    taskStatus.className = `task-status status-${task.status.toLowerCase().replace(/\s+/g, '-')}`;
-                    taskStatus.textContent = task.status;
+                    const taskStatusSelect = document.createElement('select');
+                    taskStatusSelect.className = 'task-status-select';
+                    const statuses = ['To Do', 'In Progress', 'Done'];
+                    statuses.forEach(status => {
+                        const option = document.createElement('option');
+                        option.value = status;
+                        option.textContent = status;
+                        if (status === task.status) {
+                            option.selected = true;
+                        }
+                        taskStatusSelect.appendChild(option);
+                    });
 
                     card.appendChild(taskNumber);
                     card.appendChild(taskName);
-                    card.appendChild(taskStatus);
+                    card.appendChild(taskStatusSelect);
 
                     taskBoardElement.appendChild(card);
                 });
+
+                document.querySelectorAll('.task-status-select').forEach(select => {
+                    select.addEventListener('change', async (e) => {
+                        const taskCard = e.target.closest('.task-card');
+                        const taskId = taskCard.dataset.taskId;
+                        const newStatus = e.target.value;
+
+                        try {
+                            const response = await fetch(`http://localhost:8080/api/tasks/${taskId}/status`, {
+                                method: 'PUT',
+                                credentials: 'include',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ status: newStatus })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Ошибка сервера: ${response.status}`);
+                            }
+
+                            e.target.className = `task-status status-${newStatus.toLowerCase().replace(/\s+/g, '-')}`;
+                        } catch (error) {
+                            errorMessageElement.textContent = error.message;
+                            errorMessageElement.style.display = 'block';
+                            console.error('Ошибка при обновлении статуса:', error);
+                        }
+                    });
+                });
+
             } catch (error) {
                 errorMessageElement.textContent = error.message;
                 errorMessageElement.style.display = 'block';

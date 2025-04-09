@@ -22,7 +22,7 @@ document.getElementById('registrationForm').addEventListener('submit', async fun
         const hashedPassword = await hashPassword(password);
         
         // Отправка данных на сервер
-        const response = await fetch('http://auth-service:8081/api/register', {
+        const response = await fetch('http://localhost:8080/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -36,13 +36,10 @@ document.getElementById('registrationForm').addEventListener('submit', async fun
         if (response.ok) {
             const data = await response.json();
             successMessage.textContent = 'Регистрация успешна!';
-            // Перенаправление на страницу входа через 2 секунды
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
+            window.location.href = 'http://localhost:8080/tasks';
         } else {
             const errorData = await response.json();
-            errorMessage.textContent = errorData.error || 'Ошибка регистрации';
+            errorMessage.textContent = 'Ошибка регистрации';
         }
     } catch (error) {
         errorMessage.textContent = 'Ошибка соединения с сервером';

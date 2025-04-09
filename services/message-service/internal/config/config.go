@@ -9,18 +9,11 @@ import (
 
 type Config struct {
     IsDebug *bool `yaml:"is_debug"`
+
     Listen struct {
         BindIp string `yaml:"bind_ip"`
         Port string `yaml:"port"`
     } `yaml:"listen"`
-
-    Postgres struct {
-        Host string `yaml:"host"` 
-        Port string `yaml:"db_port"`
-        HostName string `yaml:"host_name"`
-        Password string `yaml:"password"`
-        DBName string `yaml:"db_name"`
-    } `yaml:"postgres"`
 }
 
 var instance *Config

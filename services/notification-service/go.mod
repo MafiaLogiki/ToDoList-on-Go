@@ -1,33 +1,23 @@
-module task-service
+module notification-service
 
-go 1.24.1
-
-replace github.com/MafiaLogiki/common/auth => ../../common/auth
-
-replace github.com/MafiaLogiki/common/domain => ../../common/domain
+go 1.24.2
 
 replace github.com/MafiaLogiki/common/logger => ../../common/logger
+replace github.com/MafiaLogiki/common/domain => ../../common/domain
 
-replace github.com/MafiaLogiki/common/middleware => ../../common/middleware
+require github.com/IBM/sarama v1.45.1
 
 require (
-	github.com/IBM/sarama v1.45.1
-	github.com/MafiaLogiki/common/auth v0.0.0
-	github.com/MafiaLogiki/common/domain v0.0.0
+
+    github.com/MafiaLogiki/common/domain v0.0.0
 	github.com/MafiaLogiki/common/logger v0.0.0
-	github.com/MafiaLogiki/common/middleware v0.0.0-00010101000000-000000000000
-	github.com/go-chi/chi/v5 v5.2.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/lib/pq v1.10.9
-)
-
-require (
-	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
+	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

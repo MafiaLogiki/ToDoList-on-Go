@@ -3,6 +3,7 @@ package auth
 import (
     "fmt"
     "net/http"
+    "encoding/json"
 
     "github.com/golang-jwt/jwt/v5"
     "github.com/MafiaLogiki/common/logger"
@@ -55,13 +56,22 @@ func CreateAndAddTokenToCookie(l logger.Logger, w http.ResponseWriter, id int) {
     token, err := CreateToken(l, id)
 
     if err != nil {
-        http.Error(w, "Error while creating token", http.StatusBadRequest)
+        http.Error(w, `{"status": "error", "message": "Can't create token"}`, http.StatusInternalServerError)
         return
     }
-
+    
     http.SetCookie(w, &http.Cookie {
        Name: "token",
        Value: token,
        Path: "/",
    })
+    
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "status": "success",
+        "data": id,
+    })
+
 }

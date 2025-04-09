@@ -38,16 +38,18 @@ func (h *handler) postRegisterHandler(w http.ResponseWriter, r *http.Request) {
     id, err2 := db.CreateNewUser(newUser)
     
     if err2 != nil {
-        h.l.Error("Error in creating new user ", err)
+        h.l.Error("Error in creating new user ", err2)
         http.Error(w, "Error in creating new user", http.StatusBadRequest)
         return
     }
+
     auth.CreateAndAddTokenToCookie(h.l, w, id)
 }
 
 func CreateAndRunServer(cfg *config.Config, l logger.Logger) {
     
     router := chi.NewRouter()
+    router.Use(logger.LoggerMiddleware)
     
     h := CreateHandler(l)
     router.HandleFunc("/api/register", h.postRegisterHandler)
